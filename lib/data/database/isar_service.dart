@@ -47,32 +47,42 @@ class IsarService {
     }
 
     final dir = await getApplicationDocumentsDirectory();
-    final isar = Isar.getInstance() ??
-        await Isar.open(
-          [TelemetryRecordSchema, ThemeConfigRecordSchema],
-          directory: dir.path,
-          inspector: kDebugMode,
-        );
+    Isar db;
+    try {
+      db = Isar.getInstance() ??
+          await Isar.open(
+            [TelemetryRecordSchema, ThemeConfigRecordSchema],
+            directory: dir.path,
+            inspector: false,
+          );
+    } catch (e) {
+      final fallback = Isar.getInstance();
+      if (fallback != null && fallback.isOpen) {
+        db = fallback;
+      } else {
+        rethrow;
+      }
+    }
 
     // Seed TelemetryRecord singleton (id = 1) if not exists
-    final existingTelemetry = await isar.telemetryRecords.get(1);
+    final existingTelemetry = await db.telemetryRecords.get(1);
     if (existingTelemetry == null) {
-      await isar.writeTxn(() async {
+      await db.writeTxn(() async {
         final initialTelemetry = TelemetryRecord()..id = 1;
-        await isar.telemetryRecords.put(initialTelemetry);
+        await db.telemetryRecords.put(initialTelemetry);
       });
     }
 
     // Seed ThemeConfigRecord singleton (id = 1) if not exists
-    final existingTheme = await isar.themeConfigRecords.get(1);
+    final existingTheme = await db.themeConfigRecords.get(1);
     if (existingTheme == null) {
-      await isar.writeTxn(() async {
+      await db.writeTxn(() async {
         final initialTheme = ThemeConfigRecord()..id = 1;
-        await isar.themeConfigRecords.put(initialTheme);
+        await db.themeConfigRecords.put(initialTheme);
       });
     }
 
-    return isar;
+    return db;
   }
 
   Future<TelemetryRecord> getTelemetryRecord() async {
@@ -105,7 +115,11 @@ class IsarService {
   Future<ThemeConfigRecord> getThemeConfig() async {
     final db = await isar;
     final config = await db.themeConfigRecords.get(1);
-    return config ?? (ThemeConfigRecord()..id = 1);
+    final theme = config ?? (ThemeConfigRecord()..id = 1);
+    if (theme.speedFontFamily.isEmpty || theme.speedFontFamily == 'Bebas Neue') {
+      theme.speedFontFamily = 'Inter';
+    }
+    return theme;
   }
 
   Stream<ThemeConfigRecord?> watchThemeConfig() async* {
@@ -122,11 +136,15 @@ class IsarService {
   }
 
   Future<void> setOnboardingCompleted(bool completed) async {
-    final db = await isar;
-    final config = await getThemeConfig();
-    await db.writeTxn(() async {
-      config.onboardingCompleted = completed;
-      await db.themeConfigRecords.put(config);
-    });
+    try {
+      final db = await isar;
+      final config = await getThemeConfig();
+      await db.writeTxn(() async {
+        config.onboardingCompleted = completed;
+        await db.themeConfigRecords.put(config);
+      });
+    } catch (e) {
+      debugPrint('Error setting onboarding completed: $e');
+    }
   }
 }

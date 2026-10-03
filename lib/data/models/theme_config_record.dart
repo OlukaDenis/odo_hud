@@ -18,8 +18,8 @@ class ThemeConfigRecord {
   int cardLabelColor = 0xFF888888;
   int cardValueColor = 0xFFFFFFFF;
 
-  String speedFontFamily = 'Bebas Neue';
-  String telemetryFontFamily = 'JetBrains Mono';
+  String speedFontFamily = 'Inter';
+  String telemetryFontFamily = 'Inter';
   bool isMetric = true; // true = km/h, false = mph
   bool onboardingCompleted = false;
 }

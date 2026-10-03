@@ -40,15 +40,15 @@ class HudTheme {
         return GoogleFonts.orbitron().fontFamily ?? 'Orbitron';
       case 'Montserrat':
         return GoogleFonts.montserrat().fontFamily ?? 'Montserrat';
-      case 'Inter':
-        return GoogleFonts.inter().fontFamily ?? 'Inter';
+      case 'Outfit':
+        return GoogleFonts.outfit().fontFamily ?? 'Outfit';
       case 'Poppins':
         return GoogleFonts.poppins().fontFamily ?? 'Poppins';
       case 'Bebas Neue':
         return GoogleFonts.bebasNeue().fontFamily ?? 'Bebas Neue';
-      case 'Outfit':
+      case 'Inter':
       default:
-        return GoogleFonts.outfit().fontFamily ?? 'Outfit';
+        return GoogleFonts.inter().fontFamily ?? 'Inter';
     }
   }
 
@@ -64,8 +64,8 @@ class HudTheme {
       case 'Montserrat':
         baseStyle = GoogleFonts.montserrat(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
-      case 'Inter':
-        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+      case 'Outfit':
+        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
       case 'Poppins':
         baseStyle = GoogleFonts.poppins(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
@@ -73,9 +73,9 @@ class HudTheme {
       case 'Bebas Neue':
         baseStyle = GoogleFonts.bebasNeue(fontSize: fontSize, fontWeight: FontWeight.normal, color: color);
         break;
-      case 'Outfit':
+      case 'Inter':
       default:
-        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
     }
 
@@ -98,8 +98,8 @@ class HudTheme {
       case 'Montserrat':
         baseStyle = GoogleFonts.montserrat(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
-      case 'Inter':
-        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: fontWeight, color: color);
+      case 'Outfit':
+        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
       case 'Poppins':
         baseStyle = GoogleFonts.poppins(fontSize: fontSize, fontWeight: fontWeight, color: color);
@@ -107,9 +107,9 @@ class HudTheme {
       case 'Bebas Neue':
         baseStyle = GoogleFonts.bebasNeue(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
-      case 'Outfit':
+      case 'Inter':
       default:
-        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
     }
 
