@@ -71,8 +71,8 @@ void main() {
         ),
       );
 
-      expect(find.text('GPS: LOCKED (±3M)'), findsOneWidget);
-      expect(find.text('BATTERY 88%'), findsOneWidget);
+      expect(find.text('GPS Connected (±3m)'), findsOneWidget);
+      expect(find.text('88%'), findsOneWidget);
     });
 
     testWidgets('MetricCard renders label, value and unit', (tester) async {
@@ -80,7 +80,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: MetricCard(
-              label: 'TRIP DISTANCE',
+              label: 'Trip Distance',
               value: '34.8',
               unit: 'KM',
               theme: testTheme,
@@ -89,7 +89,7 @@ void main() {
         ),
       );
 
-      expect(find.text('TRIP DISTANCE'), findsOneWidget);
+      expect(find.text('Trip Distance'), findsOneWidget);
       expect(find.text('34.8'), findsOneWidget);
       expect(find.text('KM'), findsOneWidget);
     });
@@ -119,17 +119,18 @@ void main() {
         ),
       );
 
-      expect(find.text('TRIP DISTANCE'), findsOneWidget);
-      expect(find.text('MOVING TIME'), findsOneWidget);
+      expect(find.text('Trip Distance'), findsOneWidget);
+      expect(find.text('Moving Time'), findsOneWidget);
       expect(find.text('00:42:15'), findsOneWidget);
-      expect(find.text('AVG SPEED'), findsOneWidget);
-      expect(find.text('HEADING'), findsOneWidget);
+      expect(find.text('Average Speed'), findsOneWidget);
+      expect(find.text('Heading'), findsOneWidget);
       expect(find.text('NW 315°'), findsOneWidget);
     });
 
     testWidgets('ActionBar toggles HUD button and triggers onToggleHud callback',
         (tester) async {
       bool hudToggled = false;
+      bool orientationToggled = false;
       bool settingsOpened = false;
 
       await tester.pumpWidget(
@@ -138,6 +139,8 @@ void main() {
             body: ActionBar(
               isHudMirrored: false,
               onToggleHud: () => hudToggled = true,
+              isLandscape: false,
+              onToggleOrientation: () => orientationToggled = true,
               onOpenSettings: () => settingsOpened = true,
               onResetTrip: () {},
               theme: testTheme,
@@ -146,14 +149,18 @@ void main() {
         ),
       );
 
-      expect(find.text('HUD MIRROR'), findsOneWidget);
-      expect(find.text('SETTINGS'), findsOneWidget);
-      expect(find.text('RESET (HOLD)'), findsOneWidget);
+      expect(find.text('HUD Flip'), findsOneWidget);
+      expect(find.text('Landscape'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
+      expect(find.text('Reset Trip'), findsOneWidget);
 
-      await tester.tap(find.text('HUD MIRROR'));
+      await tester.tap(find.text('HUD Flip'));
       expect(hudToggled, isTrue);
 
-      await tester.tap(find.text('SETTINGS'));
+      await tester.tap(find.text('Landscape'));
+      expect(orientationToggled, isTrue);
+
+      await tester.tap(find.text('Settings'));
       expect(settingsOpened, isTrue);
     });
   });

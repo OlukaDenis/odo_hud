@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/database/isar_service.dart';
 import '../../providers/permissions_provider.dart';
@@ -8,16 +7,28 @@ import '../widgets/oem_guide_modal.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   final VoidCallback onFinish;
+  final int initialStep;
 
-  const OnboardingScreen({super.key, required this.onFinish});
+  const OnboardingScreen({
+    super.key,
+    required this.onFinish,
+    this.initialStep = 0,
+  });
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  final PageController _pageController = PageController();
-  int _currentStep = 0;
+  late final PageController _pageController;
+  late int _currentStep;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStep = widget.initialStep.clamp(0, 3);
+    _pageController = PageController(initialPage: _currentStep);
+  }
 
   @override
   void dispose() {
@@ -50,27 +61,42 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top Bar with HUD style step counter
+            // Top Bar with clean indicator
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'SETUP WIZARD',
-                    style: GoogleFonts.jetBrainsMono(
-                      color: AppColors.electricGreen,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.asset(
+                          'assets/app_icon.png',
+                          width: 24,
+                          height: 24,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.initialStep > 0 ? 'Permissions Setup' : 'Welcome to OdoHUD',
+                        style: const TextStyle(
+                          color: AppColors.electricGreen,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                   Text(
-                    'STEP ${_currentStep + 1} / 4',
-                    style: GoogleFonts.jetBrainsMono(
+                    'Step ${_currentStep + 1} of 4',
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
-                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -102,23 +128,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   // Step 1: Location Tracking
                   _buildStepCard(
-                    icon: Icons.gps_fixed,
-                    title: 'Continuous GPS Tracking',
+                    icon: Icons.location_on_rounded,
+                    title: 'Speed & Distance',
                     subtitle:
-                        'OdoHUD calculates real-time speed, live heading, and precise odometer mileage. Background tracking ensures uninterrupted telemetry even if the screen turns off or another navigation app takes focus.',
+                        'OdoHUD uses GPS to calculate your real-time speed, live heading, and trip mileage. Allow location access so tracking continues smoothly even when your phone is locked or running navigation.',
                     statusText: permissionAsync.maybeWhen(
                       data: (d) => d.locationWhenInUse
                           ? (d.locationAlways
-                              ? 'Status: Background Granted'
-                              : 'Status: Foreground Granted')
-                          : 'Status: Not Granted',
+                              ? 'Location access: Always allowed'
+                              : 'Location access: While in use')
+                          : 'Location access needed',
                       orElse: () => 'Checking...',
                     ),
                     isGranted: permissionAsync.maybeWhen(
                       data: (d) => d.locationWhenInUse,
                       orElse: () => false,
                     ),
-                    actionLabel: 'Authorize Location Access',
+                    actionLabel: 'Allow Location Access',
                     onAction: () async {
                       await ref
                           .read(permissionStatusProvider.notifier)
@@ -128,21 +154,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
                   // Step 2: Foreground Notification Service
                   _buildStepCard(
-                    icon: Icons.notifications_active_outlined,
-                    title: 'Live Telemetry Notification',
+                    icon: Icons.notifications_active_rounded,
+                    imageAsset: 'assets/notification_icon.png',
+                    title: 'Ride Notification',
                     subtitle:
-                        'To prevent the Android operating system from killing background GPS logging, OdoHUD displays a persistent, real-time notification with your current speed, trip mileage, and elapsed ride time.',
+                        'A quiet, persistent notification shows your live speed and trip time in the background so Android doesn\'t stop recording mid-ride.',
                     statusText: permissionAsync.maybeWhen(
                       data: (d) => d.notification
-                          ? 'Status: Authorized'
-                          : 'Status: Not Authorized',
+                          ? 'Notifications enabled'
+                          : 'Notification permission needed',
                       orElse: () => 'Checking...',
                     ),
                     isGranted: permissionAsync.maybeWhen(
                       data: (d) => d.notification,
                       orElse: () => false,
                     ),
-                    actionLabel: 'Enable Service Notifications',
+                    actionLabel: 'Allow Notifications',
                     onAction: () async {
                       await ref
                           .read(permissionStatusProvider.notifier)
@@ -153,20 +180,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   // Step 3: Battery Saver Exemption
                   _buildStepCard(
                     icon: Icons.battery_charging_full_rounded,
-                    title: 'Battery Saver Exemption',
+                    title: 'Unrestricted Battery',
                     subtitle:
-                        'Aggressive OS power savers throttle GPS hardware during long rides. Whitelisting OdoHUD from battery restrictions guarantees 100% telemetry accuracy from start to finish.',
+                        'Phone battery savers often pause GPS tracking when your screen is locked. Setting OdoHUD to unrestricted ensures your speed and mileage keep recording smoothly.',
                     statusText: permissionAsync.maybeWhen(
                       data: (d) => d.batteryOptimizationIgnored
-                          ? 'Status: Whitelisted (Unrestricted)'
-                          : 'Status: Standard / Optimized',
+                          ? 'Battery: Unrestricted'
+                          : 'Battery: Optimized (May pause GPS)',
                       orElse: () => 'Checking...',
                     ),
                     isGranted: permissionAsync.maybeWhen(
                       data: (d) => d.batteryOptimizationIgnored,
                       orElse: () => false,
                     ),
-                    actionLabel: 'Request Battery Exemption',
+                    actionLabel: 'Set to Unrestricted',
                     onAction: () async {
                       await ref
                           .read(permissionStatusProvider.notifier)
@@ -174,15 +201,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     },
                   ),
 
-                  // Step 4: OEM Auto-Start & Sleep Killers
+                  // Step 4: Phone-specific tips
                   _buildStepCard(
-                    icon: Icons.phonelink_setup,
-                    title: 'OEM Auto-Start & Lock',
+                    icon: Icons.smartphone_rounded,
+                    title: 'Phone Setup Tips',
                     subtitle:
-                        'Devices from Xiaomi (MIUI/HyperOS), Samsung (One UI), Huawei, Oppo, and OnePlus employ proprietary task killers. Review device-specific instructions to protect your ride tracking.',
-                    statusText: 'Review Brand Guide Recommended',
+                        'Devices from Samsung, Xiaomi, and OnePlus like to close background apps. Check these quick settings so your rides never get cut short.',
+                    statusText: 'Tips available for your phone',
                     isGranted: true,
-                    actionLabel: 'View Manufacturer Instructions',
+                    actionLabel: 'View Phone Tips',
                     onAction: () => OemGuideModal.show(context),
                   ),
                 ],
@@ -203,7 +230,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           side: const BorderSide(color: AppColors.defaultCardBorder),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         onPressed: () {
@@ -224,15 +251,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       onPressed: _nextPage,
                       child: Text(
-                        _currentStep == 3 ? 'Launch Dashboard' : 'Continue',
-                        style: GoogleFonts.jetBrainsMono(
+                        _currentStep == 3 ? 'Start Riding' : 'Continue',
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -248,6 +275,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _buildStepCard({
     required IconData icon,
+    String? imageAsset,
     required String title,
     required String subtitle,
     required String statusText,
@@ -256,15 +284,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required VoidCallback onAction,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Center(
             child: Container(
-              width: 90,
-              height: 90,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isGranted
@@ -275,24 +303,37 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   width: 2,
                 ),
               ),
-              child: Icon(
-                icon,
-                size: 44,
-                color: isGranted ? AppColors.electricGreen : AppColors.warningAmber,
-              ),
+              child: imageAsset != null
+                  ? Padding(
+                      padding: const EdgeInsets.all(22.0),
+                      child: Image.asset(
+                        imageAsset,
+                        fit: BoxFit.contain,
+                        color: isGranted
+                            ? AppColors.electricGreen
+                            : AppColors.warningAmber,
+                      ),
+                    )
+                  : Icon(
+                      icon,
+                      size: 40,
+                      color: isGranted
+                          ? AppColors.electricGreen
+                          : AppColors.warningAmber,
+                    ),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: GoogleFonts.jetBrainsMono(
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
             subtitle,
             textAlign: TextAlign.center,
@@ -302,37 +343,42 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.charcoal,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isGranted ? AppColors.electricGreen.withValues(alpha: 0.5) : AppColors.defaultCardBorder,
+                color: isGranted
+                    ? AppColors.electricGreen.withValues(alpha: 0.4)
+                    : AppColors.defaultCardBorder,
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  isGranted ? Icons.check_circle : Icons.info_outline,
-                  size: 16,
+                  isGranted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                  size: 18,
                   color: isGranted ? AppColors.electricGreen : AppColors.warningAmber,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  statusText,
-                  style: GoogleFonts.jetBrainsMono(
-                    color: isGranted ? AppColors.electricGreen : AppColors.warningAmber,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Text(
+                    statusText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: isGranted ? AppColors.electricGreen : AppColors.warningAmber,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: isGranted ? const Color(0xFF1E1E1E) : AppColors.electricGreen,
@@ -340,19 +386,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               side: isGranted
                   ? const BorderSide(color: AppColors.defaultCardBorder)
                   : BorderSide.none,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             icon: Icon(
-              isGranted ? Icons.check : Icons.lock_open_rounded,
+              isGranted ? Icons.check : Icons.touch_app_rounded,
+              size: 20,
               color: isGranted ? AppColors.electricGreen : Colors.black,
             ),
             label: Text(
-              isGranted ? 'Permission Granted (Tap to Re-check)' : actionLabel,
+              isGranted ? 'Permission Granted' : actionLabel,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                fontSize: 15,
                 color: isGranted ? Colors.white : Colors.black,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../core/theme/hud_theme.dart';
@@ -29,6 +30,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void dispose() {
     WakelockPlus.disable();
+    // Restore free device auto-orientation on exiting dashboard
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
 
@@ -36,6 +39,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
     );
+  }
+
+  void _toggleOrientation(bool isCurrentlyLandscape) {
+    HapticFeedback.selectionClick();
+    if (isCurrentlyLandscape) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    }
   }
 
   @override
@@ -73,11 +90,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         : _buildPortraitLayout(telemetry, theme, isMetric),
                   ),
 
-                  // Bottom Action Bar (Mirror, Settings, Guarded Reset)
+                  // Bottom Action Bar (Mirror, Orientation Toggle, Settings, Guarded Reset)
                   ActionBar(
                     isHudMirrored: telemetry.isHudMirrored,
                     onToggleHud: () =>
                         ref.read(telemetryProvider.notifier).toggleHudMirror(),
+                    isLandscape: isLandscape,
+                    onToggleOrientation: () => _toggleOrientation(isLandscape),
                     onOpenSettings: _openSettings,
                     onResetTrip: () =>
                         ref.read(telemetryProvider.notifier).resetTrip(),

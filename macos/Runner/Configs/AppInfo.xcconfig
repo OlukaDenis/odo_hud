@@ -8,7 +8,7 @@
 PRODUCT_NAME = odo_hud
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.dennytech.odoHud
+PRODUCT_BUNDLE_IDENTIFIER = com.dennytech.odohud
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.dennytech. All rights reserved.

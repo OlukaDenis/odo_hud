@@ -88,7 +88,7 @@ class _TopStatusBarState extends State<TopStatusBar> {
               ),
               const SizedBox(width: 4),
               Text(
-                'BATTERY ${widget.batteryPercent}%',
+                '${widget.batteryPercent}%',
                 style: widget.theme.getTelemetryTextStyle(
                   fontSize: 13,
                   color: widget.theme.cardValueColor,
@@ -106,8 +106,8 @@ class _TopStatusBarState extends State<TopStatusBar> {
     final locked = widget.isGpsLocked;
     final pillColor = locked ? AppColors.gpsLocked : AppColors.gpsSearching;
     final text = locked
-        ? 'GPS: LOCKED (±${widget.gpsAccuracyMeters.toStringAsFixed(0)}M)'
-        : 'GPS: SEARCHING';
+        ? 'GPS Connected (±${widget.gpsAccuracyMeters.toStringAsFixed(0)}m)'
+        : 'Finding GPS...';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

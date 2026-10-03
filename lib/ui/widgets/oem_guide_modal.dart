@@ -57,13 +57,26 @@ class _OemGuideModalState extends State<OemGuideModal> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'OEM Auto-Start Setup',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Background Settings Tips',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Keep GPS tracking active during your ride',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white60,
+                      ),
+                    ),
+                  ],
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white70),
@@ -220,9 +233,12 @@ class _OemGuideModalState extends State<OemGuideModal> {
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: AppColors.defaultCardBorder),
                       padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    icon: const Icon(Icons.settings),
-                    label: const Text('Open App Settings'),
+                    icon: const Icon(Icons.settings_outlined, size: 18),
+                    label: const Text('Phone Settings'),
                     onPressed: () {
                       PermissionService.instance.openAppSettingsPage();
                     },
@@ -236,13 +252,13 @@ class _OemGuideModalState extends State<OemGuideModal> {
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text(
-                      'I Understand',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      'Got It',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ),
                 ),

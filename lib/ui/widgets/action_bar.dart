@@ -7,6 +7,8 @@ import '../../core/theme/hud_theme.dart';
 class ActionBar extends StatelessWidget {
   final bool isHudMirrored;
   final VoidCallback onToggleHud;
+  final bool isLandscape;
+  final VoidCallback onToggleOrientation;
   final VoidCallback onOpenSettings;
   final VoidCallback onResetTrip;
   final HudTheme theme;
@@ -15,6 +17,8 @@ class ActionBar extends StatelessWidget {
     super.key,
     required this.isHudMirrored,
     required this.onToggleHud,
+    required this.isLandscape,
+    required this.onToggleOrientation,
     required this.onOpenSettings,
     required this.onResetTrip,
     required this.theme,
@@ -23,7 +27,7 @@ class ActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: theme.cardBackgroundColor.withValues(alpha: 0.8),
         border: Border(
@@ -36,13 +40,19 @@ class ActionBar extends StatelessWidget {
           Expanded(
             child: _buildHudMirrorButton(),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
+
+          // Orientation Toggle Button
+          Expanded(
+            child: _buildOrientationButton(),
+          ),
+          const SizedBox(width: 6),
 
           // Settings Button
           Expanded(
             child: _buildSettingsButton(),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
 
           // Guarded 1500ms Hold-To-Reset Button
           Expanded(
@@ -61,7 +71,7 @@ class ActionBar extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: isHudMirrored ? theme.speedNormal : const Color(0xFF1E1E1E),
         foregroundColor: isHudMirrored ? Colors.black : Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(
@@ -71,11 +81,13 @@ class ActionBar extends StatelessWidget {
       ),
       icon: Icon(
         Icons.flip,
-        size: 18,
+        size: 16,
         color: isHudMirrored ? Colors.black : theme.speedNormal,
       ),
       label: Text(
-        isHudMirrored ? 'HUD ON' : 'HUD MIRROR',
+        isHudMirrored ? 'Mirrored' : 'HUD Flip',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: theme.getTelemetryTextStyle(
           fontSize: 12,
           color: isHudMirrored ? Colors.black : Colors.white,
@@ -86,20 +98,52 @@ class ActionBar extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsButton() {
+  Widget _buildOrientationButton() {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF1E1E1E),
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(color: theme.cardBorderColor),
         ),
       ),
-      icon: const Icon(Icons.tune, size: 18, color: Colors.white70),
+      icon: Icon(
+        isLandscape ? Icons.stay_current_portrait_rounded : Icons.stay_current_landscape_rounded,
+        size: 16,
+        color: theme.speedNormal,
+      ),
       label: Text(
-        'SETTINGS',
+        isLandscape ? 'Portrait' : 'Landscape',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.getTelemetryTextStyle(
+          fontSize: 12,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      onPressed: onToggleOrientation,
+    );
+  }
+
+  Widget _buildSettingsButton() {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: theme.cardBorderColor),
+        ),
+      ),
+      icon: const Icon(Icons.tune, size: 16, color: Colors.white70),
+      label: Text(
+        'Settings',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: theme.getTelemetryTextStyle(
           fontSize: 12,
           color: Colors.white,
@@ -210,12 +254,16 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
                     children: [
                       Icon(
                         Icons.refresh,
-                        size: 16,
+                        size: 14,
                         color: isHolding ? AppColors.criticalRed : Colors.white70,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        isHolding ? 'HOLD ${( (1.5 - progress * 1.5) ).toStringAsFixed(1)}s' : 'RESET (HOLD)',
+                        isHolding
+                            ? '${(1.5 - progress * 1.5).toStringAsFixed(1)}s'
+                            : 'Reset Trip',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: widget.theme.getTelemetryTextStyle(
                           fontSize: 11,
                           color: isHolding ? AppColors.criticalRed : Colors.white,

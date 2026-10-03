@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,22 +12,47 @@ class IsarService {
   IsarService._();
 
   Isar? _isar;
+  Completer<Isar>? _initCompleter;
 
   Future<Isar> get isar async {
+    final existing = Isar.getInstance();
+    if (existing != null && existing.isOpen) {
+      _isar = existing;
+      return existing;
+    }
     if (_isar != null && _isar!.isOpen) {
       return _isar!;
     }
-    _isar = await _initDb();
-    return _isar!;
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+
+    _initCompleter = Completer<Isar>();
+    try {
+      final db = await _initDb();
+      _isar = db;
+      _initCompleter!.complete(db);
+      return db;
+    } catch (e, st) {
+      _initCompleter!.completeError(e, st);
+      _initCompleter = null;
+      rethrow;
+    }
   }
 
   Future<Isar> _initDb() async {
+    final existing = Isar.getInstance();
+    if (existing != null && existing.isOpen) {
+      return existing;
+    }
+
     final dir = await getApplicationDocumentsDirectory();
-    final isar = await Isar.open(
-      [TelemetryRecordSchema, ThemeConfigRecordSchema],
-      directory: dir.path,
-      inspector: kDebugMode,
-    );
+    final isar = Isar.getInstance() ??
+        await Isar.open(
+          [TelemetryRecordSchema, ThemeConfigRecordSchema],
+          directory: dir.path,
+          inspector: kDebugMode,
+        );
 
     // Seed TelemetryRecord singleton (id = 1) if not exists
     final existingTelemetry = await isar.telemetryRecords.get(1);

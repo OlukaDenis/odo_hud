@@ -40,10 +40,10 @@ class MetricCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.getTelemetryTextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     color: theme.cardLabelColor,
-                    fontWeight: FontWeight.bold,
-                  ).copyWith(letterSpacing: 1.0),
+                    fontWeight: FontWeight.w600,
+                  ).copyWith(letterSpacing: 0.3),
                 ),
               ),
               if (icon != null) ...[

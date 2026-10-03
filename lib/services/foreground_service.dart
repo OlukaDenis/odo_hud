@@ -29,12 +29,15 @@ class ForegroundServiceManager {
 
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'odo_hud_telemetry_channel',
+        channelId: 'odo_hud_telemetry_silent_v2',
         channelName: 'OdoHUD Telemetry Tracking',
         channelDescription:
             'Continuous background odometer & speed tracking service',
-        channelImportance: NotificationChannelImportance.HIGH,
-        priority: NotificationPriority.HIGH,
+        channelImportance: NotificationChannelImportance.LOW,
+        priority: NotificationPriority.LOW,
+        enableVibration: false,
+        playSound: false,
+        showWhen: false,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: false,
@@ -60,8 +63,8 @@ class ForegroundServiceManager {
 
     final result = await FlutterForegroundTask.startService(
       serviceId: 256,
-      notificationTitle: 'OdoHUD Active Ride',
-      notificationText: 'Tracking real-time telemetry...',
+      notificationTitle: 'OdoHUD Ride',
+      notificationText: 'Tracking your ride...',
       callback: startCallback,
     );
 
@@ -86,8 +89,8 @@ class ForegroundServiceManager {
         : '${(tripKm * 0.621371).toStringAsFixed(1)} mi';
 
     FlutterForegroundTask.updateService(
-      notificationTitle: 'OdoHUD Active Ride ($speedStr)',
-      notificationText: 'Speed: $speedStr | Trip: $distStr | Time: $timeFormatted',
+      notificationTitle: 'OdoHUD • $speedStr',
+      notificationText: '$distStr • $timeFormatted moving',
     );
   }
 

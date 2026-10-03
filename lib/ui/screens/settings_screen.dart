@@ -15,30 +15,46 @@ class SettingsScreen extends ConsumerWidget {
     Color currentColor,
     ValueChanged<Color> onColorChanged,
   ) {
+    Color selectedColor = currentColor;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.charcoal,
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: currentColor,
-            onColorChanged: onColorChanged,
-            enableAlpha: false,
-            displayThumbColor: true,
-            pickerAreaHeightPercent: 0.7,
-          ),
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.electricGreen,
-              foregroundColor: Colors.black,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogCtx, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.charcoal,
+            title: Text(title, style: const TextStyle(color: Colors.white)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ColorPicker(
+                    pickerColor: selectedColor,
+                    onColorChanged: (newColor) {
+                      setDialogState(() {
+                        selectedColor = newColor;
+                      });
+                      onColorChanged(newColor);
+                    },
+                    enableAlpha: false,
+                    displayThumbColor: true,
+                    pickerAreaHeightPercent: 0.7,
+                  ),
+                ],
+              ),
             ),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Select'),
-          ),
-        ],
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.electricGreen,
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Select'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -55,7 +71,7 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: theme.cardBackgroundColor,
         elevation: 0,
         title: Text(
-          'HUD SETTINGS',
+          'HUD Settings',
           style: theme.getTelemetryTextStyle(
             fontSize: 18,
             color: Colors.white,
@@ -90,25 +106,64 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Unit System
-          _buildSectionHeader('UNIT SYSTEM', theme),
-          SwitchListTile(
-            title: Text(
-              'Metric Units (KM/H, KM)',
-              style: theme.getTelemetryTextStyle(fontSize: 15, color: Colors.white),
+          // Unit System using ChoiceChips
+          _buildSectionHeader('Speed Units', theme),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                ChoiceChip(
+                  label: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Text(
+                      'KM / H (Metric)',
+                      style: TextStyle(
+                        color: theme.isMetric ? Colors.black : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  selected: theme.isMetric,
+                  selectedColor: theme.speedNormal,
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  side: BorderSide(
+                    color: theme.isMetric ? theme.speedNormal : theme.cardBorderColor,
+                  ),
+                  onSelected: (val) {
+                    if (val) themeNotifier.setUnitSystem(true);
+                  },
+                ),
+                const SizedBox(width: 12),
+                ChoiceChip(
+                  label: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Text(
+                      'MPH (Imperial)',
+                      style: TextStyle(
+                        color: !theme.isMetric ? Colors.black : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  selected: !theme.isMetric,
+                  selectedColor: theme.speedNormal,
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  side: BorderSide(
+                    color: !theme.isMetric ? theme.speedNormal : theme.cardBorderColor,
+                  ),
+                  onSelected: (val) {
+                    if (val) themeNotifier.setUnitSystem(false);
+                  },
+                ),
+              ],
             ),
-            subtitle: Text(
-              theme.isMetric ? 'Displaying km/h and km' : 'Displaying mph and miles',
-              style: TextStyle(color: theme.cardLabelColor, fontSize: 12),
-            ),
-            value: theme.isMetric,
-            activeThumbColor: theme.speedNormal,
-            onChanged: (val) => themeNotifier.toggleUnitSystem(),
           ),
-          const Divider(color: Colors.white12),
+          const Divider(color: Colors.white12, height: 28),
 
           // Background Color Presets
-          _buildSectionHeader('BACKGROUND COLOR', theme),
+          _buildSectionHeader('Background Color', theme),
           Row(
             children: [
               _buildBackgroundChip(
@@ -138,16 +193,25 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(color: Colors.white12, height: 32),
 
-          // Speedometer Typography
-          _buildSectionHeader('SPEEDOMETER FONT', theme),
+          // App-Wide Non-Monospaced Typography
+          _buildSectionHeader('Font Style', theme),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'Selected font is applied across the whole app',
+              style: TextStyle(color: theme.cardLabelColor, fontSize: 13),
+            ),
+          ),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              'Bebas Neue',
+              'Outfit',
+              'Inter',
+              'Montserrat',
               'Orbitron',
-              'JetBrains Mono',
-              'Share Tech Mono',
+              'Bebas Neue',
+              'Poppins',
             ].map((font) {
               final isSelected = config.speedFontFamily == font;
               return ChoiceChip(
@@ -161,6 +225,9 @@ class SettingsScreen extends ConsumerWidget {
                 selected: isSelected,
                 selectedColor: theme.speedNormal,
                 backgroundColor: const Color(0xFF1E1E1E),
+                side: BorderSide(
+                  color: isSelected ? theme.speedNormal : theme.cardBorderColor,
+                ),
                 onSelected: (val) {
                   if (val) themeNotifier.updateFonts(speedFont: font);
                 },
@@ -170,7 +237,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(color: Colors.white12, height: 32),
 
           // Speed Alert Colors
-          _buildSectionHeader('SPEED ALERT COLORS', theme),
+          _buildSectionHeader('Speed Colors', theme),
           ListTile(
             leading: CircleAvatar(
               backgroundColor: theme.speedNormal,
@@ -225,7 +292,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(color: Colors.white12, height: 32),
 
           // Speed Threshold Sliders
-          _buildSectionHeader('SPEED ALERT THRESHOLDS', theme),
+          _buildSectionHeader('Speed Warning Limits', theme),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Column(
@@ -300,10 +367,10 @@ class SettingsScreen extends ConsumerWidget {
       child: Text(
         title,
         style: theme.getTelemetryTextStyle(
-          fontSize: 13,
+          fontSize: 14,
           color: theme.speedNormal,
           fontWeight: FontWeight.bold,
-        ).copyWith(letterSpacing: 2),
+        ).copyWith(letterSpacing: 0.5),
       ),
     );
   }

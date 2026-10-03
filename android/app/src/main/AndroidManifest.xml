@@ -18,7 +18,16 @@
         android:label="OdoHUD"
         android:name="${applicationName}"
         android:keepScreenOn="true"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher">
+
+        <!-- Push & Foreground Notification Default Icon -->
+        <meta-data
+            android:name="com.pravera.flutter_foreground_task.notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
 
         <!-- Foreground Service Definition for Ongoing Trip Notification -->
         <service

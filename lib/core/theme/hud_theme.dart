@@ -21,6 +21,8 @@ class HudTheme {
   double get criticalThresholdKmh => config.criticalThresholdKmh;
   bool get isMetric => config.isMetric;
 
+  String get activeFontFamily => config.speedFontFamily;
+
   Color getSpeedColor(double speedKmh) {
     if (speedKmh >= config.criticalThresholdKmh) {
       return speedCritical;
@@ -31,24 +33,49 @@ class HudTheme {
     }
   }
 
+  /// Resolves the app-wide fontFamily string using the chosen non-mono font
+  String get fontFamily {
+    switch (activeFontFamily) {
+      case 'Orbitron':
+        return GoogleFonts.orbitron().fontFamily ?? 'Orbitron';
+      case 'Montserrat':
+        return GoogleFonts.montserrat().fontFamily ?? 'Montserrat';
+      case 'Inter':
+        return GoogleFonts.inter().fontFamily ?? 'Inter';
+      case 'Poppins':
+        return GoogleFonts.poppins().fontFamily ?? 'Poppins';
+      case 'Bebas Neue':
+        return GoogleFonts.bebasNeue().fontFamily ?? 'Bebas Neue';
+      case 'Outfit':
+      default:
+        return GoogleFonts.outfit().fontFamily ?? 'Outfit';
+    }
+  }
+
   TextStyle getSpeedTextStyle({
     required double fontSize,
     required Color color,
   }) {
     TextStyle baseStyle;
-    switch (config.speedFontFamily) {
+    switch (activeFontFamily) {
       case 'Orbitron':
         baseStyle = GoogleFonts.orbitron(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
-      case 'Share Tech Mono':
-        baseStyle = GoogleFonts.shareTechMono(fontSize: fontSize, fontWeight: FontWeight.w700, color: color);
+      case 'Montserrat':
+        baseStyle = GoogleFonts.montserrat(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
-      case 'JetBrains Mono':
-        baseStyle = GoogleFonts.jetBrainsMono(fontSize: fontSize, fontWeight: FontWeight.w800, color: color);
+      case 'Inter':
+        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        break;
+      case 'Poppins':
+        baseStyle = GoogleFonts.poppins(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
       case 'Bebas Neue':
-      default:
         baseStyle = GoogleFonts.bebasNeue(fontSize: fontSize, fontWeight: FontWeight.normal, color: color);
+        break;
+      case 'Outfit':
+      default:
+        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
         break;
     }
 
@@ -64,19 +91,25 @@ class HudTheme {
     FontWeight fontWeight = FontWeight.w600,
   }) {
     TextStyle baseStyle;
-    switch (config.telemetryFontFamily) {
+    switch (activeFontFamily) {
       case 'Orbitron':
         baseStyle = GoogleFonts.orbitron(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        break;
+      case 'Montserrat':
+        baseStyle = GoogleFonts.montserrat(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        break;
+      case 'Inter':
+        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        break;
+      case 'Poppins':
+        baseStyle = GoogleFonts.poppins(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
       case 'Bebas Neue':
         baseStyle = GoogleFonts.bebasNeue(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
-      case 'Share Tech Mono':
-        baseStyle = GoogleFonts.shareTechMono(fontSize: fontSize, fontWeight: fontWeight, color: color);
-        break;
-      case 'JetBrains Mono':
+      case 'Outfit':
       default:
-        baseStyle = GoogleFonts.jetBrainsMono(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: fontWeight, color: color);
         break;
     }
 

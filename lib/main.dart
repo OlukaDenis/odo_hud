@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'core/constants/app_colors.dart';
 import 'data/database/isar_service.dart';
 import 'providers/theme_provider.dart';
 import 'services/foreground_service.dart';
+import 'services/permission_service.dart';
 import 'ui/screens/dashboard_screen.dart';
 import 'ui/screens/onboarding_screen.dart';
 
@@ -45,6 +47,7 @@ class OdoHudApp extends ConsumerWidget {
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: theme.backgroundColor,
+        fontFamily: theme.fontFamily,
         colorScheme: ColorScheme.dark(
           surface: theme.cardBackgroundColor,
           primary: theme.speedNormal,
@@ -64,22 +67,59 @@ class AppRootRouter extends StatefulWidget {
   State<AppRootRouter> createState() => _AppRootRouterState();
 }
 
-class _AppRootRouterState extends State<AppRootRouter> {
+class _AppRootRouterState extends State<AppRootRouter>
+    with WidgetsBindingObserver {
   bool _isLoading = true;
-  bool _onboardingCompleted = false;
+  bool _showDashboard = false;
+  int _initialOnboardingStep = 0;
 
   @override
   void initState() {
     super.initState();
-    _checkOnboarding();
+    WidgetsBinding.instance.addObserver(this);
+    _checkStatus();
   }
 
-  Future<void> _checkOnboarding() async {
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_showDashboard) {
+      _checkStatus();
+    }
+  }
+
+  Future<void> _checkStatus() async {
     try {
       final config = await IsarService.instance.getThemeConfig();
+      final report = await PermissionService.instance.checkCurrentStatus();
+
+      // Check if all permissions have been accepted
+      final bool allPermissionsAccepted = report.areAllPermissionsAccepted;
+
+      // Only bypass setup wizard if it was captured previously AND all permissions were fully accepted
+      final bool canOpenDashboard =
+          config.onboardingCompleted && allPermissionsAccepted;
+
+      int targetStep = 0;
+      if (!report.locationWhenInUse) {
+        targetStep = 0;
+      } else if (Platform.isAndroid && !report.notification) {
+        targetStep = 1;
+      } else if (Platform.isAndroid && !report.batteryOptimizationIgnored) {
+        targetStep = 2;
+      } else {
+        targetStep = 3;
+      }
+
       if (mounted) {
         setState(() {
-          _onboardingCompleted = config.onboardingCompleted;
+          _showDashboard = canOpenDashboard;
+          _initialOnboardingStep = targetStep;
           _isLoading = false;
         });
       }
@@ -103,14 +143,15 @@ class _AppRootRouterState extends State<AppRootRouter> {
       );
     }
 
-    if (!_onboardingCompleted) {
-      return OnboardingScreen(
-        onFinish: () {
-          setState(() => _onboardingCompleted = true);
-        },
-      );
+    if (_showDashboard) {
+      return const DashboardScreen();
     }
 
-    return const DashboardScreen();
+    return OnboardingScreen(
+      initialStep: _initialOnboardingStep,
+      onFinish: () {
+        setState(() => _showDashboard = true);
+      },
+    );
   }
 }

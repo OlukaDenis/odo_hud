@@ -52,8 +52,16 @@ class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
     String? speedFont,
     String? telemetryFont,
   }) async {
-    if (speedFont != null) state.speedFontFamily = speedFont;
-    if (telemetryFont != null) state.telemetryFontFamily = telemetryFont;
+    final chosen = speedFont ?? telemetryFont;
+    if (chosen != null) {
+      state.speedFontFamily = chosen;
+      state.telemetryFontFamily = chosen;
+    }
+    await _save();
+  }
+
+  Future<void> setUnitSystem(bool isMetric) async {
+    state.isMetric = isMetric;
     await _save();
   }
 

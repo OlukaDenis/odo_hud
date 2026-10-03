@@ -46,27 +46,27 @@ class AuxiliaryGrid extends StatelessWidget {
               ((constraints.maxHeight - 24) / 2).clamp(40.0, 300.0),
           children: [
             MetricCard(
-              label: 'TRIP DISTANCE',
+              label: 'Trip Distance',
               value: tripDist,
               unit: tripDistUnit,
               icon: Icons.route_outlined,
               theme: theme,
             ),
             MetricCard(
-              label: 'MOVING TIME',
+              label: 'Moving Time',
               value: movingTime,
               icon: Icons.timer_outlined,
               theme: theme,
             ),
             MetricCard(
-              label: 'AVG SPEED',
+              label: 'Average Speed',
               value: avgSpeed,
               unit: avgSpeedUnit,
               icon: Icons.speed_outlined,
               theme: theme,
             ),
             MetricCard(
-              label: 'HEADING',
+              label: 'Heading',
               value: heading,
               icon: Icons.explore_outlined,
               theme: theme,

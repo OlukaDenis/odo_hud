@@ -18,6 +18,10 @@ class PermissionStatusReport {
 
   bool get isReady =>
       locationWhenInUse && (Platform.isAndroid ? notification : true);
+
+  bool get areAllPermissionsAccepted =>
+      locationWhenInUse &&
+      (Platform.isAndroid ? (notification && batteryOptimizationIgnored) : true);
 }
 
 class PermissionService {
