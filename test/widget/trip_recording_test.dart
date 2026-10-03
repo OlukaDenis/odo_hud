@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:odo_hud/core/theme/hud_theme.dart';
 import 'package:odo_hud/data/models/theme_config_record.dart';
-import 'package:odo_hud/models/telemetry_state.dart';
+import 'package:odo_hud/data/models/trip_record.dart';
 import 'package:odo_hud/ui/screens/trip_history_screen.dart';
 import 'package:odo_hud/ui/widgets/action_bar.dart';
 import 'package:odo_hud/ui/widgets/top_status_bar.dart';
@@ -12,7 +12,8 @@ void main() {
   final testTheme = HudTheme(ThemeConfigRecord()..id = 1);
 
   group('Trip Recording & Toolbar Tests', () {
-    testWidgets('TopStatusBar shows active recording badge when isRecordingTrip is true',
+    testWidgets(
+        'TopStatusBar shows active recording badge when isRecordingTrip is true',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -92,6 +93,27 @@ void main() {
 
       expect(find.text('Stop Trip'), findsOneWidget);
       expect(find.text('Start Trip'), findsNothing);
+    });
+
+    testWidgets(
+        'TripHistoryScreen renders empty state without throwing type error',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: TripHistoryScreen(
+              tripsStream: Stream.value(<TripRecord>[]),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Trip History'), findsOneWidget);
+      expect(find.text('No Recorded Rides Yet'), findsOneWidget);
+      expect(find.text('Back to Dashboard'), findsOneWidget);
     });
   });
 }

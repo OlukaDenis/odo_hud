@@ -53,29 +53,30 @@ class HudTheme {
   }
 
   TextStyle getSpeedTextStyle({
-    required double fontSize,
+    required num fontSize,
     required Color color,
   }) {
+    final size = fontSize.toDouble();
     TextStyle baseStyle;
     switch (activeFontFamily) {
       case 'Orbitron':
-        baseStyle = GoogleFonts.orbitron(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        baseStyle = GoogleFonts.orbitron(fontSize: size, fontWeight: FontWeight.w900, color: color);
         break;
       case 'Montserrat':
-        baseStyle = GoogleFonts.montserrat(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        baseStyle = GoogleFonts.montserrat(fontSize: size, fontWeight: FontWeight.w900, color: color);
         break;
       case 'Outfit':
-        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        baseStyle = GoogleFonts.outfit(fontSize: size, fontWeight: FontWeight.w900, color: color);
         break;
       case 'Poppins':
-        baseStyle = GoogleFonts.poppins(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        baseStyle = GoogleFonts.poppins(fontSize: size, fontWeight: FontWeight.w900, color: color);
         break;
       case 'Bebas Neue':
-        baseStyle = GoogleFonts.bebasNeue(fontSize: fontSize, fontWeight: FontWeight.normal, color: color);
+        baseStyle = GoogleFonts.bebasNeue(fontSize: size, fontWeight: FontWeight.normal, color: color);
         break;
       case 'Inter':
       default:
-        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: FontWeight.w900, color: color);
+        baseStyle = GoogleFonts.inter(fontSize: size, fontWeight: FontWeight.w900, color: color);
         break;
     }
 
@@ -86,37 +87,40 @@ class HudTheme {
   }
 
   TextStyle getTelemetryTextStyle({
-    required double fontSize,
+    required num fontSize,
     required Color color,
     FontWeight fontWeight = FontWeight.w600,
     double? letterSpacing,
+    double? height,
   }) {
+    final size = fontSize.toDouble();
     TextStyle baseStyle;
     switch (activeFontFamily) {
       case 'Orbitron':
-        baseStyle = GoogleFonts.orbitron(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.orbitron(fontSize: size, fontWeight: fontWeight, color: color);
         break;
       case 'Montserrat':
-        baseStyle = GoogleFonts.montserrat(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.montserrat(fontSize: size, fontWeight: fontWeight, color: color);
         break;
       case 'Outfit':
-        baseStyle = GoogleFonts.outfit(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.outfit(fontSize: size, fontWeight: fontWeight, color: color);
         break;
       case 'Poppins':
-        baseStyle = GoogleFonts.poppins(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.poppins(fontSize: size, fontWeight: fontWeight, color: color);
         break;
       case 'Bebas Neue':
-        baseStyle = GoogleFonts.bebasNeue(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.bebasNeue(fontSize: size, fontWeight: fontWeight, color: color);
         break;
       case 'Inter':
       default:
-        baseStyle = GoogleFonts.inter(fontSize: fontSize, fontWeight: fontWeight, color: color);
+        baseStyle = GoogleFonts.inter(fontSize: size, fontWeight: fontWeight, color: color);
         break;
     }
 
     return baseStyle.copyWith(
       fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacing,
+      height: height,
     );
   }
 }

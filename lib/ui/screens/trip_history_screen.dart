@@ -3,13 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../data/database/isar_service.dart';
 import '../../data/models/trip_record.dart';
 import '../../providers/theme_provider.dart';
 
 class TripHistoryScreen extends ConsumerStatefulWidget {
-  const TripHistoryScreen({super.key});
+  final Stream<List<TripRecord>>? tripsStream;
+
+  const TripHistoryScreen({super.key, this.tripsStream});
 
   @override
   ConsumerState<TripHistoryScreen> createState() => _TripHistoryScreenState();
@@ -17,6 +20,9 @@ class TripHistoryScreen extends ConsumerStatefulWidget {
 
 class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
   final IsarService _isarService = IsarService.instance;
+
+  Stream<List<TripRecord>> get _effectiveStream =>
+      widget.tripsStream ?? _isarService.watchAllTrips();
 
   void _confirmDeleteTrip(BuildContext context, TripRecord trip) {
     HapticFeedback.selectionClick();
@@ -131,102 +137,97 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     final theme = ref.watch(hudThemeProvider);
     final isMetric = theme.isMetric;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () {
-            HapticFeedback.selectionClick();
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Trip History',
-              style: theme.getTelemetryTextStyle(
-                fontSize: 20,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+    return StreamBuilder<List<TripRecord>>(
+      stream: _effectiveStream,
+      builder: (context, snapshot) {
+        final trips = snapshot.data ?? [];
+        final isLoading =
+            snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+
+        return Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            elevation: 0,
+            centerTitle: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white, size: 20),
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                Navigator.of(context).pop();
+              },
             ),
-            const SizedBox(height: 2),
-            Text(
-              'Recorded ride telemetry & insights',
-              style: theme.getTelemetryTextStyle(
-                fontSize: 12,
-                color: Colors.white54,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          StreamBuilder<List<TripRecord>>(
-            stream: _isarService.watchAllTrips(),
-            builder: (context, snapshot) {
-              final trips = snapshot.data ?? [];
-              if (trips.isEmpty) return const SizedBox.shrink();
-              return IconButton(
-                tooltip: 'Clear All Rides',
-                icon: const Icon(Icons.delete_sweep_rounded, color: Colors.white70, size: 22),
-                onPressed: () => _confirmClearAll(context),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: StreamBuilder<List<TripRecord>>(
-        stream: _isarService.watchAllTrips(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-            return Center(
-              child: CircularProgressIndicator(color: AppColors.cyanAccent),
-            );
-          }
-
-          final trips = snapshot.data ?? [];
-
-          if (trips.isEmpty) {
-            return _buildEmptyState(context, theme);
-          }
-
-          return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            children: [
-              // Summary Banner
-              _buildSummaryHeader(trips, isMetric, theme),
-              const SizedBox(height: 20),
-
-              // Section Label
-              Text(
-                'PAST RIDES (${trips.length})',
-                style: theme.getTelemetryTextStyle(
-                  fontSize: 12,
-                  color: Colors.white54,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.2,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Trip History',
+                  style: theme.getTelemetryTextStyle(
+                    fontSize: 20.0,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // Ride Cards
-              ...trips.map((trip) => _buildTripCard(trip, isMetric, theme)),
-              const SizedBox(height: 32),
+                const SizedBox(height: 2),
+                Text(
+                  'Recorded ride telemetry & insights',
+                  style: theme.getTelemetryTextStyle(
+                    fontSize: 12.0,
+                    color: Colors.white54,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              if (trips.isNotEmpty)
+                IconButton(
+                  tooltip: 'Clear All Rides',
+                  icon: const Icon(Icons.delete_sweep_rounded,
+                      color: Colors.white70, size: 22),
+                  onPressed: () => _confirmClearAll(context),
+                ),
+              const SizedBox(width: 8),
             ],
-          );
-        },
-      ),
+          ),
+          body: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(color: AppColors.cyanAccent),
+                )
+              : trips.isEmpty
+                  ? _buildEmptyState(context, theme)
+                  : ListView(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      children: [
+                        // Summary Banner
+                        _buildSummaryHeader(trips, isMetric, theme),
+                        const SizedBox(height: 20),
+
+                        // Section Label
+                        Text(
+                          'PAST RIDES (${trips.length})',
+                          style: theme.getTelemetryTextStyle(
+                            fontSize: 12.0,
+                            color: Colors.white54,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Ride Cards
+                        ...trips.map((trip) => _buildTripCard(trip, isMetric, theme)),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+        );
+      },
     );
   }
 
-  Widget _buildSummaryHeader(List<TripRecord> trips, bool isMetric, dynamic theme) {
+  Widget _buildSummaryHeader(List<TripRecord> trips, bool isMetric, HudTheme theme) {
     double totalKm = 0.0;
     int totalSeconds = 0;
     double maxSpeed = 0.0;
@@ -279,7 +280,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                   Text(
                     'LIFETIME RIDE STATS',
                     style: theme.getTelemetryTextStyle(
-                      fontSize: 11,
+                      fontSize: 11.0,
                       color: Colors.white54,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.0,
@@ -288,7 +289,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                   Text(
                     '${trips.length} completed ${trips.length == 1 ? 'ride' : 'rides'}',
                     style: theme.getTelemetryTextStyle(
-                      fontSize: 15,
+                      fontSize: 15.0,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -337,14 +338,14 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     required String label,
     required String value,
     required String unit,
-    required dynamic theme,
+    required HudTheme theme,
   }) {
     return Column(
       children: [
         Text(
           label,
           style: theme.getTelemetryTextStyle(
-            fontSize: 9,
+            fontSize: 9.0,
             color: Colors.white38,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
@@ -359,7 +360,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
             Text(
               value,
               style: theme.getTelemetryTextStyle(
-                fontSize: 16,
+                fontSize: 16.0,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -369,7 +370,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
               Text(
                 unit,
                 style: theme.getTelemetryTextStyle(
-                  fontSize: 10,
+                  fontSize: 10.0,
                   color: AppColors.cyanAccent,
                   fontWeight: FontWeight.w600,
                 ),
@@ -381,7 +382,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     );
   }
 
-  Widget _buildTripCard(TripRecord trip, bool isMetric, dynamic theme) {
+  Widget _buildTripCard(TripRecord trip, bool isMetric, HudTheme theme) {
     final dist = isMetric ? trip.distanceKm : UnitConverter.kmToMiles(trip.distanceKm);
     final distUnit = isMetric ? 'km' : 'mi';
 
@@ -417,7 +418,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                     Text(
                       trip.title.isEmpty ? 'Recorded Ride' : trip.title,
                       style: theme.getTelemetryTextStyle(
-                        fontSize: 16,
+                        fontSize: 16.0,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -426,7 +427,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
                     Text(
                       '$dateStr • $timeStr',
                       style: theme.getTelemetryTextStyle(
-                        fontSize: 12,
+                        fontSize: 12.0,
                         color: Colors.white54,
                       ),
                     ),
@@ -483,7 +484,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     required String label,
     required String value,
     required String unit,
-    required dynamic theme,
+    required HudTheme theme,
     bool highlight = false,
   }) {
     return Column(
@@ -492,7 +493,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
         Text(
           label,
           style: theme.getTelemetryTextStyle(
-            fontSize: 10,
+            fontSize: 10.0,
             color: Colors.white38,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
@@ -506,7 +507,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
             Text(
               value,
               style: theme.getTelemetryTextStyle(
-                fontSize: 16,
+                fontSize: 16.0,
                 color: highlight ? theme.speedNormal : Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -516,7 +517,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
               Text(
                 unit,
                 style: theme.getTelemetryTextStyle(
-                  fontSize: 10,
+                  fontSize: 10.0,
                   color: Colors.white54,
                   fontWeight: FontWeight.w500,
                 ),
@@ -528,7 +529,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, dynamic theme) {
+  Widget _buildEmptyState(BuildContext context, HudTheme theme) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -553,7 +554,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
             Text(
               'No Recorded Rides Yet',
               style: theme.getTelemetryTextStyle(
-                fontSize: 20,
+                fontSize: 20.0,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -563,7 +564,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
               'Whenever you take off, tap "Start Trip" on the bottom dashboard toolbar. Your route distance, duration, and top speeds will automatically be saved here.',
               textAlign: TextAlign.center,
               style: theme.getTelemetryTextStyle(
-                fontSize: 14,
+                fontSize: 14.0,
                 color: Colors.white54,
                 height: 1.4,
               ),
