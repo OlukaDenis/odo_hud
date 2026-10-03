@@ -4,6 +4,7 @@ import '../core/constants/app_constants.dart';
 import '../core/utils/unit_converter.dart';
 import '../data/database/isar_service.dart';
 import '../data/models/telemetry_record.dart';
+import '../data/models/trip_record.dart';
 import '../models/telemetry_state.dart';
 import '../services/foreground_service.dart';
 import '../services/location_service.dart';
@@ -36,6 +37,12 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
   int _activeTripMovingSeconds = 0;
   double _maxSpeedKmh = 0.0;
   bool _isMoving = false;
+
+  // Active Trip Recording Session
+  DateTime? _recordingStartTime;
+  double _recordedTripMeters = 0.0;
+  int _recordedTripSeconds = 0;
+  double _recordedTripMaxSpeedKmh = 0.0;
 
   TelemetryNotifier(this._isar) : super(const TelemetryState()) {
     _initialize();
@@ -87,6 +94,13 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
           averageSpeedKmh: curAvgSpeed,
         );
       }
+
+      if (state.isRecordingTrip) {
+        _recordedTripSeconds++;
+        state = state.copyWith(
+          recordedTripSeconds: _recordedTripSeconds,
+        );
+      }
     });
 
     // 6. Start 5-second persistence flush loop & notification update
@@ -132,6 +146,13 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
           }
         }
 
+        if (state.isRecordingTrip) {
+          _recordedTripMeters += update.distanceDeltaMeters;
+          if (speedKmh > _recordedTripMaxSpeedKmh) {
+            _recordedTripMaxSpeedKmh = speedKmh;
+          }
+        }
+
         final tripKm = UnitConverter.metersToKm(_activeTripMeters);
         final tripMiles = UnitConverter.kmToMiles(tripKm);
         final odoKm = UnitConverter.metersToKm(_lifetimeOdometerMeters);
@@ -154,6 +175,8 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
           cardinalDirection: cardinal,
           gpsAccuracyMeters: update.accuracyMeters,
           isGpsLocked: update.isGpsLocked,
+          recordedTripDistanceKm: UnitConverter.metersToKm(_recordedTripMeters),
+          recordedTripMaxSpeedKmh: _recordedTripMaxSpeedKmh,
         );
       },
       onError: (e) {
@@ -200,6 +223,87 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
   void toggleHudMirror() {
     state = state.copyWith(isHudMirrored: !state.isHudMirrored);
+  }
+
+  void startTripRecording() {
+    _recordingStartTime = DateTime.now();
+    _recordedTripMeters = 0.0;
+    _recordedTripSeconds = 0;
+    _recordedTripMaxSpeedKmh = state.currentSpeedKmh;
+
+    state = state.copyWith(
+      isRecordingTrip: true,
+      recordingStartTime: _recordingStartTime,
+      recordedTripDistanceKm: 0.0,
+      recordedTripSeconds: 0,
+      recordedTripMaxSpeedKmh: _recordedTripMaxSpeedKmh,
+    );
+  }
+
+  Future<TripRecord?> stopTripRecording() async {
+    if (!state.isRecordingTrip) return null;
+
+    final start = _recordingStartTime ?? DateTime.now();
+    final end = DateTime.now();
+    final distanceKm = UnitConverter.metersToKm(_recordedTripMeters);
+    final durationSec = _recordedTripSeconds > 0
+        ? _recordedTripSeconds
+        : end.difference(start).inSeconds;
+    final topSpeed = _recordedTripMaxSpeedKmh;
+    final avgSpeed = durationSec > 0
+        ? distanceKm / (durationSec / 3600.0)
+        : 0.0;
+
+    final trip = TripRecord()
+      ..startTime = start
+      ..endTime = end
+      ..distanceKm = distanceKm
+      ..durationSeconds = durationSec
+      ..topSpeedKmh = topSpeed
+      ..avgSpeedKmh = avgSpeed
+      ..title = _generateHumanTripTitle(start)
+      ..isCompleted = true;
+
+    await _isar.saveTrip(trip);
+
+    state = state.copyWith(
+      isRecordingTrip: false,
+      recordingStartTime: null,
+      recordedTripDistanceKm: 0.0,
+      recordedTripSeconds: 0,
+      recordedTripMaxSpeedKmh: 0.0,
+    );
+
+    _recordedTripMeters = 0.0;
+    _recordedTripSeconds = 0;
+    _recordedTripMaxSpeedKmh = 0.0;
+    _recordingStartTime = null;
+
+    return trip;
+  }
+
+  String _generateHumanTripTitle(DateTime dt) {
+    final hour = dt.hour;
+    final weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    final day = weekdays[dt.weekday - 1];
+
+    if (hour >= 5 && hour < 12) {
+      return '$day Morning Ride';
+    } else if (hour >= 12 && hour < 17) {
+      return '$day Afternoon Ride';
+    } else if (hour >= 17 && hour < 21) {
+      return '$day Evening Cruise';
+    } else {
+      return '$day Night Ride';
+    }
   }
 
   Future<void> resetTrip() async {

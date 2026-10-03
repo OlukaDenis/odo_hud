@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
+import '../../core/utils/unit_converter.dart';
+import '../../data/models/trip_record.dart';
 import '../../models/telemetry_state.dart';
 import '../../providers/telemetry_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -11,6 +14,7 @@ import '../widgets/auxiliary_grid.dart';
 import '../widgets/speed_display.dart';
 import '../widgets/top_status_bar.dart';
 import 'settings_screen.dart';
+import 'trip_history_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -38,6 +42,235 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void _openSettings() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
+    );
+  }
+
+  void _openTripHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TripHistoryScreen()),
+    );
+  }
+
+  Future<void> _handleToggleRecording() async {
+    final telemetry = ref.read(telemetryProvider);
+    final notifier = ref.read(telemetryProvider.notifier);
+
+    if (telemetry.isRecordingTrip) {
+      final trip = await notifier.stopTripRecording();
+      if (trip != null && mounted) {
+        _showTripFinishedSheet(trip);
+      }
+    } else {
+      notifier.startTripRecording();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF1E1E1E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: const BorderSide(color: Color(0xFF333333)),
+            ),
+            duration: const Duration(seconds: 2),
+            content: const Row(
+              children: [
+                Icon(Icons.fiber_manual_record_rounded,
+                    color: Colors.redAccent, size: 16),
+                SizedBox(width: 8),
+                Text(
+                  'Trip recording active',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showTripFinishedSheet(TripRecord trip) {
+    final theme = ref.read(hudThemeProvider);
+    final isMetric = theme.isMetric;
+
+    final dist = isMetric
+        ? '${trip.distanceKm.toStringAsFixed(2)} km'
+        : '${UnitConverter.kmToMiles(trip.distanceKm).toStringAsFixed(2)} mi';
+    final duration = UnitConverter.formatMovingTime(trip.durationSeconds);
+    final avgSpeed = isMetric
+        ? '${trip.avgSpeedKmh.toStringAsFixed(1)} km/h'
+        : '${UnitConverter.kmhToMph(trip.avgSpeedKmh).toStringAsFixed(1)} mph';
+    final topSpeed = isMetric
+        ? '${trip.topSpeedKmh.toStringAsFixed(1)} km/h'
+        : '${UnitConverter.kmhToMph(trip.topSpeedKmh).toStringAsFixed(1)} mph';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: BoxDecoration(
+          color: const Color(0xFF141414),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.cyanAccent.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.cyanAccent,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Ride Saved!',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        trip.title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white60,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Stats Grid
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1B1B1B),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF2A2A2A)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildModalStat('DISTANCE', dist, highlight: true),
+                  ),
+                  Expanded(
+                    child: _buildModalStat('DURATION', duration),
+                  ),
+                  Expanded(
+                    child: _buildModalStat('AVG SPEED', avgSpeed),
+                  ),
+                  Expanded(
+                    child: _buildModalStat('MAX SPEED', topSpeed),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Actions
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Color(0xFF3A3A3A)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Dismiss'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.speedNormal,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _openTripHistory();
+                    },
+                    child: const Text(
+                      'View All Trips',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalStat(String label, String value, {bool highlight = false}) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            color: Colors.white38,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.6,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 13,
+            color: highlight ? AppColors.cyanAccent : Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
@@ -75,12 +308,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
               return Column(
                 children: [
-                  // Top Status Bar (Clock, GPS status, Battery)
+                  // Top Toolbar (Live GPS status, active trip pill, trip history & settings)
                   TopStatusBar(
                     isGpsLocked: telemetry.isGpsLocked,
                     gpsAccuracyMeters: telemetry.gpsAccuracyMeters,
-                    batteryPercent: telemetry.batteryPercent,
                     theme: theme,
+                    onOpenSettings: _openSettings,
+                    onOpenTripHistory: _openTripHistory,
+                    isRecordingTrip: telemetry.isRecordingTrip,
+                    recordedTripSeconds: telemetry.recordedTripSeconds,
+                    recordedTripDistanceKm: telemetry.recordedTripDistanceKm,
                   ),
 
                   // Responsive Body
@@ -90,14 +327,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         : _buildPortraitLayout(telemetry, theme, isMetric),
                   ),
 
-                  // Bottom Action Bar (Mirror, Orientation Toggle, Settings, Guarded Reset)
+                  // Bottom Action Bar (Mirror, Orientation Toggle, Start/Stop Trip, Guarded Reset)
                   ActionBar(
                     isHudMirrored: telemetry.isHudMirrored,
                     onToggleHud: () =>
                         ref.read(telemetryProvider.notifier).toggleHudMirror(),
                     isLandscape: isLandscape,
                     onToggleOrientation: () => _toggleOrientation(isLandscape),
-                    onOpenSettings: _openSettings,
+                    isRecordingTrip: telemetry.isRecordingTrip,
+                    onToggleRecording: _handleToggleRecording,
                     onResetTrip: () =>
                         ref.read(telemetryProvider.notifier).resetTrip(),
                     theme: theme,

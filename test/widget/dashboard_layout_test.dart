@@ -56,23 +56,34 @@ void main() {
       expect(find.text('MPH'), findsOneWidget);
     });
 
-    testWidgets('TopStatusBar displays GPS lock and battery level',
+    testWidgets('TopStatusBar (TopToolbar) displays GPS lock and action buttons',
         (tester) async {
+      bool settingsOpened = false;
+      bool historyOpened = false;
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: TopStatusBar(
               isGpsLocked: true,
               gpsAccuracyMeters: 3.0,
-              batteryPercent: 88,
               theme: testTheme,
+              onOpenSettings: () => settingsOpened = true,
+              onOpenTripHistory: () => historyOpened = true,
             ),
           ),
         ),
       );
 
       expect(find.text('GPS Connected (±3m)'), findsOneWidget);
-      expect(find.text('88%'), findsOneWidget);
+      expect(find.byIcon(Icons.history_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.history_rounded));
+      expect(historyOpened, isTrue);
+
+      await tester.tap(find.byIcon(Icons.tune_rounded));
+      expect(settingsOpened, isTrue);
     });
 
     testWidgets('MetricCard renders label, value and unit', (tester) async {
@@ -127,11 +138,12 @@ void main() {
       expect(find.text('NW 315°'), findsOneWidget);
     });
 
-    testWidgets('ActionBar toggles HUD button and triggers onToggleHud callback',
+    testWidgets(
+        'ActionBar toggles HUD button and triggers recording & orientation callbacks',
         (tester) async {
       bool hudToggled = false;
       bool orientationToggled = false;
-      bool settingsOpened = false;
+      bool tripToggled = false;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -141,7 +153,8 @@ void main() {
               onToggleHud: () => hudToggled = true,
               isLandscape: false,
               onToggleOrientation: () => orientationToggled = true,
-              onOpenSettings: () => settingsOpened = true,
+              isRecordingTrip: false,
+              onToggleRecording: () => tripToggled = true,
               onResetTrip: () {},
               theme: testTheme,
             ),
@@ -151,7 +164,7 @@ void main() {
 
       expect(find.text('HUD Flip'), findsOneWidget);
       expect(find.text('Landscape'), findsOneWidget);
-      expect(find.text('Settings'), findsOneWidget);
+      expect(find.text('Start Trip'), findsOneWidget);
       expect(find.text('Reset Trip'), findsOneWidget);
 
       await tester.tap(find.text('HUD Flip'));
@@ -160,8 +173,8 @@ void main() {
       await tester.tap(find.text('Landscape'));
       expect(orientationToggled, isTrue);
 
-      await tester.tap(find.text('Settings'));
-      expect(settingsOpened, isTrue);
+      await tester.tap(find.text('Start Trip'));
+      expect(tripToggled, isTrue);
     });
   });
 }

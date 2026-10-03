@@ -13,6 +13,11 @@ class TelemetryState {
   final bool isGpsLocked;
   final bool isHudMirrored;
   final int batteryPercent;
+  final bool isRecordingTrip;
+  final DateTime? recordingStartTime;
+  final double recordedTripDistanceKm;
+  final int recordedTripSeconds;
+  final double recordedTripMaxSpeedKmh;
 
   const TelemetryState({
     this.currentSpeedKmh = 0.0,
@@ -29,6 +34,11 @@ class TelemetryState {
     this.isGpsLocked = false,
     this.isHudMirrored = false,
     this.batteryPercent = 100,
+    this.isRecordingTrip = false,
+    this.recordingStartTime,
+    this.recordedTripDistanceKm = 0.0,
+    this.recordedTripSeconds = 0,
+    this.recordedTripMaxSpeedKmh = 0.0,
   });
 
   TelemetryState copyWith({
@@ -46,6 +56,11 @@ class TelemetryState {
     bool? isGpsLocked,
     bool? isHudMirrored,
     int? batteryPercent,
+    bool? isRecordingTrip,
+    DateTime? recordingStartTime,
+    double? recordedTripDistanceKm,
+    int? recordedTripSeconds,
+    double? recordedTripMaxSpeedKmh,
   }) {
     return TelemetryState(
       currentSpeedKmh: currentSpeedKmh ?? this.currentSpeedKmh,
@@ -62,6 +77,13 @@ class TelemetryState {
       isGpsLocked: isGpsLocked ?? this.isGpsLocked,
       isHudMirrored: isHudMirrored ?? this.isHudMirrored,
       batteryPercent: batteryPercent ?? this.batteryPercent,
+      isRecordingTrip: isRecordingTrip ?? this.isRecordingTrip,
+      recordingStartTime: recordingStartTime ?? this.recordingStartTime,
+      recordedTripDistanceKm:
+          recordedTripDistanceKm ?? this.recordedTripDistanceKm,
+      recordedTripSeconds: recordedTripSeconds ?? this.recordedTripSeconds,
+      recordedTripMaxSpeedKmh:
+          recordedTripMaxSpeedKmh ?? this.recordedTripMaxSpeedKmh,
     );
   }
 }

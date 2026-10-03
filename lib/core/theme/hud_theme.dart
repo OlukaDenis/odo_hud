@@ -89,6 +89,7 @@ class HudTheme {
     required double fontSize,
     required Color color,
     FontWeight fontWeight = FontWeight.w600,
+    double? letterSpacing,
   }) {
     TextStyle baseStyle;
     switch (activeFontFamily) {
@@ -115,6 +116,7 @@ class HudTheme {
 
     return baseStyle.copyWith(
       fontFeatures: const [FontFeature.tabularFigures()],
+      letterSpacing: letterSpacing,
     );
   }
 }

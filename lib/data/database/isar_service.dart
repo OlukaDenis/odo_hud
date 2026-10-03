@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/telemetry_record.dart';
 import '../models/theme_config_record.dart';
+import '../models/trip_record.dart';
 
 class IsarService {
   static IsarService? _instance;
@@ -51,7 +52,7 @@ class IsarService {
     try {
       db = Isar.getInstance() ??
           await Isar.open(
-            [TelemetryRecordSchema, ThemeConfigRecordSchema],
+            [TelemetryRecordSchema, ThemeConfigRecordSchema, TripRecordSchema],
             directory: dir.path,
             inspector: false,
           );
@@ -146,5 +147,38 @@ class IsarService {
     } catch (e) {
       debugPrint('Error setting onboarding completed: $e');
     }
+  }
+
+  // --- Trip Records ---
+
+  Future<Id> saveTrip(TripRecord trip) async {
+    final db = await isar;
+    return await db.writeTxn(() async {
+      return await db.tripRecords.put(trip);
+    });
+  }
+
+  Future<List<TripRecord>> getAllTrips() async {
+    final db = await isar;
+    return await db.tripRecords.where().sortByStartTimeDesc().findAll();
+  }
+
+  Stream<List<TripRecord>> watchAllTrips() async* {
+    final db = await isar;
+    yield* db.tripRecords.where().sortByStartTimeDesc().watch(fireImmediately: true);
+  }
+
+  Future<bool> deleteTrip(Id id) async {
+    final db = await isar;
+    return await db.writeTxn(() async {
+      return await db.tripRecords.delete(id);
+    });
+  }
+
+  Future<void> clearAllTrips() async {
+    final db = await isar;
+    await db.writeTxn(() async {
+      await db.tripRecords.clear();
+    });
   }
 }
