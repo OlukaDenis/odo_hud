@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
@@ -13,8 +14,6 @@ import '../widgets/action_bar.dart';
 import '../widgets/auxiliary_grid.dart';
 import '../widgets/speed_display.dart';
 import '../widgets/top_status_bar.dart';
-import 'settings_screen.dart';
-import 'trip_history_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -40,15 +39,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _openSettings() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-    );
+    context.push('/settings');
   }
 
   void _openTripHistory() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TripHistoryScreen()),
-    );
+    context.push('/history');
   }
 
   Future<void> _handleToggleRecording() async {

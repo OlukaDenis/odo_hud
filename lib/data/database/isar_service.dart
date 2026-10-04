@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/telemetry_record.dart';
 import '../models/theme_config_record.dart';
 import '../models/trip_record.dart';
@@ -136,7 +137,30 @@ class IsarService {
     });
   }
 
+  Future<bool> isOnboardingCompleted() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.containsKey('onboarding_completed')) {
+        return prefs.getBool('onboarding_completed') ?? false;
+      }
+    } catch (_) {}
+
+    try {
+      final config = await getThemeConfig();
+      return config.onboardingCompleted;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> setOnboardingCompleted(bool completed) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_completed', completed);
+    } catch (e) {
+      debugPrint('Error saving onboarding in SharedPreferences: $e');
+    }
+
     try {
       final db = await isar;
       final config = await getThemeConfig();

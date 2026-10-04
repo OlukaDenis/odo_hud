@@ -16,6 +16,8 @@ class PermissionStatusReport {
     this.batteryOptimizationIgnored = false,
   });
 
+  bool get hasEssentialPermissions => locationWhenInUse;
+
   bool get isReady =>
       locationWhenInUse && (Platform.isAndroid ? notification : true);
 
