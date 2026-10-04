@@ -20,7 +20,7 @@ class MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: theme.cardBackgroundColor,
         borderRadius: BorderRadius.circular(10),
@@ -40,51 +40,53 @@ class MetricCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.getTelemetryTextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: theme.cardLabelColor,
                     fontWeight: FontWeight.w600,
-                  ).copyWith(letterSpacing: 0.3),
+                  ).copyWith(letterSpacing: 0.2),
                 ),
               ),
               if (icon != null) ...[
                 const SizedBox(width: 4),
                 Icon(
                   icon,
-                  size: 14,
+                  size: 13,
                   color: theme.cardLabelColor.withValues(alpha: 0.8),
                 ),
               ],
             ],
           ),
 
-          // Value and Unit
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  value,
-                  style: theme.getTelemetryTextStyle(
-                    fontSize: 26,
-                    color: theme.cardValueColor,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                if (unit != null) ...[
-                  const SizedBox(width: 6),
+          // Value and Unit (Expanded to guarantee zero overflow)
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
                   Text(
-                    unit!,
+                    value,
                     style: theme.getTelemetryTextStyle(
-                      fontSize: 13,
-                      color: theme.speedNormal,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: theme.cardValueColor,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
+                  if (unit != null) ...[
+                    const SizedBox(width: 5),
+                    Text(
+                      unit!,
+                      style: theme.getTelemetryTextStyle(
+                        fontSize: 12,
+                        color: theme.speedNormal,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],

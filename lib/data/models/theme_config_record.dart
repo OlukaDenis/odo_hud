@@ -21,5 +21,6 @@ class ThemeConfigRecord {
   String speedFontFamily = 'Inter';
   String telemetryFontFamily = 'Inter';
   bool isMetric = true; // true = km/h, false = mph
+  String distanceUnit = 'km'; // 'km' or 'm' (default: 'km')
   bool onboardingCompleted = false;
 }

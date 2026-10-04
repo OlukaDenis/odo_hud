@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
+import 'hud_quick_actions.dart';
 
 /// Sleek Top Toolbar replacing the former status bar.
 /// Clock and battery have been removed to reduce clutter and focus purely on telemetry.
@@ -18,6 +19,10 @@ class TopStatusBar extends StatefulWidget {
   final int recordedTripSeconds;
   final double recordedTripDistanceKm;
   final int batteryPercent; // Retained for backwards compatibility if needed
+  final bool isLandscape;
+  final bool isHudMirrored;
+  final VoidCallback? onToggleHud;
+  final VoidCallback? onToggleOrientation;
 
   const TopStatusBar({
     super.key,
@@ -31,6 +36,10 @@ class TopStatusBar extends StatefulWidget {
     this.recordedTripSeconds = 0,
     this.recordedTripDistanceKm = 0.0,
     this.batteryPercent = 100,
+    this.isLandscape = false,
+    this.isHudMirrored = false,
+    this.onToggleHud,
+    this.onToggleOrientation,
   });
 
   @override
@@ -217,9 +226,14 @@ class _TopStatusBarState extends State<TopStatusBar>
   }
 
   Widget _buildRecordingIndicator() {
-    final distStr = widget.theme.isMetric
-        ? '${widget.recordedTripDistanceKm.toStringAsFixed(1)} km'
-        : '${UnitConverter.kmToMiles(widget.recordedTripDistanceKm).toStringAsFixed(1)} mi';
+    final String distStr;
+    if (widget.theme.distanceUnit == 'm') {
+      distStr = '${(widget.recordedTripDistanceKm * 1000).toStringAsFixed(0)} m';
+    } else {
+      distStr = widget.theme.isMetric
+          ? '${widget.recordedTripDistanceKm.toStringAsFixed(1)} km'
+          : '${UnitConverter.kmToMiles(widget.recordedTripDistanceKm).toStringAsFixed(1)} mi';
+    }
     final timeStr = UnitConverter.formatMovingTime(widget.recordedTripSeconds);
     final isPaused = widget.isTripPaused;
     final color = isPaused ? const Color(0xFFFFB340) : Colors.redAccent;

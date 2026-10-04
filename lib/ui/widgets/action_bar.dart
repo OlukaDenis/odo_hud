@@ -42,7 +42,7 @@ class ActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: theme.cardBackgroundColor,
         border: Border(
@@ -55,26 +55,27 @@ class ActionBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 54,
+          height: 48,
           child: Row(
             children: [
-              // 1. Pause / Resume Trip Recording Button
-              Expanded(
-                flex: 4,
+              // 1. Pause / Resume Button (Icon only)
+              SizedBox(
+                width: 52,
+                height: 48,
                 child: _buildPauseResumeButton(),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
 
-              // 2. Start / Stop Trip Recording Button (Solid in Middle)
+              // 2. Start / Stop Button ('Start' / 'Stop' - Solid in Middle)
               Expanded(
-                flex: 5,
                 child: _buildStartStopButton(),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
 
-              // 3. Guarded 1500ms Hold-To-Reset Button
-              Expanded(
-                flex: 4,
+              // 3. Guarded 1500ms Hold-To-Reset Button (Icon only)
+              SizedBox(
+                width: 52,
+                height: 48,
                 child: _GuardedResetButton(
                   onReset: onResetTrip,
                   theme: theme,
@@ -134,9 +135,9 @@ class ActionBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      active ? 'Stop Trip' : 'Start Trip',
+                      active ? 'Stop' : 'Start',
                       style: theme.getTelemetryTextStyle(
-                        fontSize: 14,
+                        fontSize: 15,
                         color: solidFg,
                         fontWeight: FontWeight.w800,
                       ),
@@ -159,73 +160,55 @@ class ActionBar extends StatelessWidget {
     Color border;
     Color fg;
     IconData icon;
-    String label;
+    String tooltip;
 
     final isDark = theme.isDarkMode;
     if (!canPause) {
-      bg = isDark ? const Color(0xFF161616) : const Color(0xFFE8E8ED);
+      bg = isDark ? theme.cardBackgroundColor : const Color(0xFFE8E8ED);
       border = theme.cardBorderColor.withValues(alpha: 0.4);
       fg = isDark ? Colors.white24 : Colors.black26;
       icon = Icons.pause_rounded;
-      label = 'Pause';
+      tooltip = 'Pause Recording';
     } else if (isPaused) {
       bg = isDark ? const Color(0xFF10261A) : const Color(0xFFE8F5E9);
       border = const Color(0xFF34D399);
       fg = isDark ? const Color(0xFF34D399) : const Color(0xFF00897B);
       icon = Icons.play_arrow_rounded;
-      label = 'Resume';
+      tooltip = 'Resume Recording';
     } else {
       bg = isDark ? const Color(0xFF281C09) : const Color(0xFFFFF3E0);
       border = const Color(0xFFFFB340);
       fg = isDark ? const Color(0xFFFFB340) : const Color(0xFFE65100);
       icon = Icons.pause_rounded;
-      label = 'Pause';
+      tooltip = 'Pause Recording';
     }
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: canPause
-            ? () {
-                HapticFeedback.mediumImpact();
-                onTogglePause?.call();
-              }
-            : null,
-        borderRadius: BorderRadius.circular(10),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: border,
-              width: canPause ? 1.5 : 1.0,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          onTap: canPause
+              ? () {
+                  HapticFeedback.mediumImpact();
+                  onTogglePause?.call();
+                }
+              : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: border,
+                width: canPause ? 1.5 : 1.0,
+              ),
             ),
-          ),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      icon,
-                      size: 20,
-                      color: fg,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      label,
-                      style: theme.getTelemetryTextStyle(
-                        fontSize: 14,
-                        color: fg,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+            child: Center(
+              child: Icon(
+                icon,
+                size: 22,
+                color: fg,
               ),
             ),
           ),
@@ -303,67 +286,46 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
           final isHolding = progress > 0.0;
 
           final isDark = widget.theme.isDarkMode;
-          return Container(
-            height: 54,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE8E8ED),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isHolding
-                    ? AppColors.criticalRed
-                    : widget.theme.cardBorderColor.withValues(alpha: 0.8),
-                width: isHolding ? 1.5 : 1.0,
+          return Tooltip(
+            message: 'Hold to Reset Trip',
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: isDark ? widget.theme.cardBackgroundColor : const Color(0xFFE8E8ED),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isHolding
+                      ? AppColors.criticalRed
+                      : widget.theme.cardBorderColor,
+                  width: isHolding ? 1.5 : 1.0,
+                ),
               ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(9),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Progressive Fill Bar
-                  Positioned.fill(
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: progress,
-                      child: Container(
-                        color: AppColors.criticalRed.withValues(alpha: 0.4),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Progressive Fill Bar (fills bottom-to-top or left-to-right)
+                    Positioned.fill(
+                      child: FractionallySizedBox(
+                        alignment: Alignment.bottomCenter,
+                        heightFactor: progress,
+                        child: Container(
+                          color: AppColors.criticalRed.withValues(alpha: 0.35),
+                        ),
                       ),
                     ),
-                  ),
 
-                  // Button Text & Icon
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.refresh_rounded,
-                            size: 18,
-                            color: isHolding
-                                ? AppColors.criticalRed
-                                : widget.theme.subtitleColor,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            isHolding
-                                ? '${(1.5 - progress * 1.5).toStringAsFixed(1)}s'
-                                : 'Reset Trip',
-                            style: widget.theme.getTelemetryTextStyle(
-                              fontSize: 14,
-                              color: isHolding
-                                  ? AppColors.criticalRed
-                                  : widget.theme.textColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                    // Reset Icon
+                    Icon(
+                      Icons.refresh_rounded,
+                      size: 22,
+                      color: isHolding
+                          ? AppColors.criticalRed
+                          : widget.theme.textColor.withValues(alpha: 0.85),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );

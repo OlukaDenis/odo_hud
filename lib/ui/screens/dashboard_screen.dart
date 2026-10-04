@@ -306,6 +306,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             builder: (context, orientation) {
               final isLandscape = orientation == Orientation.landscape;
 
+              final actionBar = ActionBar(
+                isRecordingTrip: telemetry.isRecordingTrip,
+                onToggleRecording: _handleToggleRecording,
+                isTripPaused: telemetry.isTripPaused,
+                onTogglePause: () => ref
+                    .read(telemetryProvider.notifier)
+                    .togglePauseTripRecording(),
+                onResetTrip: () =>
+                    ref.read(telemetryProvider.notifier).resetTrip(),
+                theme: theme,
+              );
+
               return Column(
                 children: [
                   // Top Toolbar (Live GPS status, active trip pill, trip history & settings)
@@ -329,6 +341,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             theme,
                             isMetric,
                             isLandscape: isLandscape,
+                            actionBar: actionBar,
                           )
                         : _buildPortraitLayout(
                             telemetry,
@@ -338,18 +351,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                   ),
 
-                  // Bottom Action Bar (Enlarged: Start/Stop, Pause/Resume, Guarded Reset)
-                  ActionBar(
-                    isRecordingTrip: telemetry.isRecordingTrip,
-                    onToggleRecording: _handleToggleRecording,
-                    isTripPaused: telemetry.isTripPaused,
-                    onTogglePause: () => ref
-                        .read(telemetryProvider.notifier)
-                        .togglePauseTripRecording(),
-                    onResetTrip: () =>
-                        ref.read(telemetryProvider.notifier).resetTrip(),
-                    theme: theme,
-                  ),
+                  // Bottom Action Bar (rendered at bottom in Portrait; nested under grid in Landscape)
+                  if (!isLandscape) actionBar,
                 ],
               );
             },
@@ -364,13 +367,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     HudTheme theme,
     bool isMetric, {
     required bool isLandscape,
+    required Widget actionBar,
   }) {
     final currentSpeed =
         isMetric ? telemetry.currentSpeedKmh : telemetry.currentSpeedMph;
 
     return Row(
       children: [
-        // Left 55%: Speed Numeral
+        // Left 55%: Full-height Speed Numeral (completely uninterrupted)
         Expanded(
           flex: 11,
           child: SpeedDisplay(
@@ -381,18 +385,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
 
-        // Right 45%: 2x2 Auxiliary Grid with top HUD & orientation actions
+        // Right 45%: 2x2 Auxiliary Grid + Action Bar (matching exact width of the grid)
         Expanded(
           flex: 9,
-          child: AuxiliaryGrid(
-            telemetry: telemetry,
-            theme: theme,
-            isMetric: isMetric,
-            isHudMirrored: telemetry.isHudMirrored,
-            onToggleHud: () =>
-                ref.read(telemetryProvider.notifier).toggleHudMirror(),
-            isLandscape: isLandscape,
-            onToggleOrientation: () => _toggleOrientation(isLandscape),
+          child: Column(
+            children: [
+              Expanded(
+                child: AuxiliaryGrid(
+                  telemetry: telemetry,
+                  theme: theme,
+                  isMetric: isMetric,
+                  isHudMirrored: telemetry.isHudMirrored,
+                  onToggleHud: () =>
+                      ref.read(telemetryProvider.notifier).toggleHudMirror(),
+                  isLandscape: isLandscape,
+                  onToggleOrientation: () => _toggleOrientation(isLandscape),
+                ),
+              ),
+              actionBar,
+            ],
           ),
         ),
       ],

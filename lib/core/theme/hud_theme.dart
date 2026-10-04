@@ -20,6 +20,8 @@ class HudTheme {
   double get warningThresholdKmh => config.warningThresholdKmh;
   double get criticalThresholdKmh => config.criticalThresholdKmh;
   bool get isMetric => config.isMetric;
+  String get distanceUnit => config.distanceUnit;
+  bool get isDistanceKm => config.distanceUnit == 'km';
 
   bool get isDarkMode =>
       config.backgroundColorValue == 0xFF000000 ||

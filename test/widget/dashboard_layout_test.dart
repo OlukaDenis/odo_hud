@@ -139,8 +139,7 @@ void main() {
         ),
       );
 
-      // Verify header label and metric cards
-      expect(find.text('LIVE TELEMETRY'), findsOneWidget);
+      // Verify metric cards
       expect(find.text('Trip Distance'), findsOneWidget);
       expect(find.text('Moving Time'), findsOneWidget);
       expect(find.text('00:42:15'), findsOneWidget);
@@ -184,18 +183,18 @@ void main() {
         ),
       );
 
-      expect(find.text('Stop Trip'), findsOneWidget);
-      expect(find.text('Pause'), findsOneWidget);
-      expect(find.text('Reset Trip'), findsOneWidget);
+      expect(find.text('Stop'), findsOneWidget);
+      expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
 
       // Verify HUD flip & landscape are NOT in bottom action bar
       expect(find.byIcon(Icons.flip_rounded), findsNothing);
       expect(find.byIcon(Icons.stay_current_landscape_rounded), findsNothing);
 
-      await tester.tap(find.text('Stop Trip'));
+      await tester.tap(find.text('Stop'));
       expect(tripToggled, isTrue);
 
-      await tester.tap(find.text('Pause'));
+      await tester.tap(find.byIcon(Icons.pause_rounded));
       expect(pauseToggled, isTrue);
     });
   });

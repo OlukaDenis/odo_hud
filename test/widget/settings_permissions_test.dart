@@ -18,15 +18,22 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify Speed Unit System is present on top
-      expect(find.text('SPEED UNIT SYSTEM'), findsOneWidget);
-      expect(find.text('KM/H (Metric)'), findsOneWidget);
-      expect(find.text('MPH (Imperial)'), findsOneWidget);
+      // Verify Speed & Distance Units Card is present on top
+      expect(find.text('SPEED & DISTANCE UNITS'), findsOneWidget);
+      expect(find.text('Speed Unit'), findsOneWidget);
+      expect(find.text('Distance Unit'), findsOneWidget);
+      expect(find.text('KM/H'), findsOneWidget);
+      expect(find.text('KM'), findsOneWidget);
 
       // Verify Appearance & Theme Card
+      await tester.scrollUntilVisible(
+        find.text('Theme Appearance'),
+        150,
+        scrollable: find.byType(Scrollable),
+      );
       expect(find.text('APPEARANCE & THEME'), findsOneWidget);
       expect(find.text('Theme Appearance'), findsOneWidget);
-      expect(find.text('Dark (AMOLED Black)'), findsOneWidget);
+      expect(find.text('Dark Mode'), findsOneWidget);
       expect(find.text('Speedometer Font'), findsOneWidget);
       expect(find.text('Speed Display Colors'), findsOneWidget);
 

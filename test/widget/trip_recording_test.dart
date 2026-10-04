@@ -67,10 +67,10 @@ void main() {
         ),
       );
 
-      expect(find.text('Start Trip'), findsOneWidget);
-      expect(find.text('Stop Trip'), findsNothing);
+      expect(find.text('Start'), findsOneWidget);
+      expect(find.text('Stop'), findsNothing);
 
-      await tester.tap(find.text('Start Trip'));
+      await tester.tap(find.text('Start'));
       expect(recordToggled, isTrue);
 
       // When recording IS active
@@ -91,8 +91,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Stop Trip'), findsOneWidget);
-      expect(find.text('Start Trip'), findsNothing);
+      expect(find.text('Stop'), findsOneWidget);
+      expect(find.text('Start'), findsNothing);
     });
 
     testWidgets('ActionBar toggles between Pause and Resume states',
@@ -115,10 +115,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Pause'), findsOneWidget);
-      expect(find.text('Resume'), findsNothing);
+      expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
 
-      await tester.tap(find.text('Pause'));
+      await tester.tap(find.byIcon(Icons.pause_rounded));
       expect(pauseToggled, isTrue);
 
       // Active recording and paused
@@ -137,8 +136,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Resume'), findsOneWidget);
-      expect(find.text('Pause'), findsNothing);
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
     });
 
     testWidgets(

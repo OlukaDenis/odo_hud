@@ -38,6 +38,7 @@ class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
       ..speedFontFamily = src.speedFontFamily
       ..telemetryFontFamily = src.telemetryFontFamily
       ..isMetric = src.isMetric
+      ..distanceUnit = src.distanceUnit
       ..onboardingCompleted = src.onboardingCompleted;
   }
 
@@ -156,6 +157,14 @@ class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
 
   void toggleUnitSystem() {
     setUnitSystem(!state.isMetric);
+  }
+
+  void setDistanceUnit(String unit) {
+    if (unit != 'km' && unit != 'm') return;
+    final updated = _clone(state);
+    updated.distanceUnit = unit;
+    state = updated;
+    _debounceSave();
   }
 
   void updateCardColors({

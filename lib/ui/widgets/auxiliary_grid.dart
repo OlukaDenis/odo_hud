@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../models/telemetry_state.dart';
+import 'hud_quick_actions.dart';
 import 'metric_card.dart';
 
 class AuxiliaryGrid extends StatelessWidget {
@@ -27,10 +28,17 @@ class AuxiliaryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tripDist = isMetric
-        ? telemetry.tripDistanceKm.toStringAsFixed(1)
-        : telemetry.tripDistanceMiles.toStringAsFixed(1);
-    final tripDistUnit = isMetric ? 'KM' : 'MI';
+    final String tripDist;
+    final String tripDistUnit;
+    if (theme.distanceUnit == 'm') {
+      tripDist = (telemetry.tripDistanceKm * 1000).toStringAsFixed(0);
+      tripDistUnit = 'M';
+    } else {
+      tripDist = isMetric
+          ? telemetry.tripDistanceKm.toStringAsFixed(1)
+          : telemetry.tripDistanceMiles.toStringAsFixed(1);
+      tripDistUnit = isMetric ? 'KM' : 'MI';
+    }
 
     final avgSpeed = isMetric
         ? telemetry.averageSpeedKmh.toStringAsFixed(0)
@@ -44,39 +52,25 @@ class AuxiliaryGrid extends StatelessWidget {
 
     return Column(
       children: [
-        // Top Quick Actions Bar (HUD flip & landscape toggle icons only)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          child: Row(
-            children: [
-              Text(
-                'LIVE TELEMETRY',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.1,
-                  color: theme.subtitleColor.withValues(alpha: 0.7),
+        // Top Quick Actions Bar (rendered in portrait; in landscape it is moved to TopStatusBar)
+        if (!isLandscape)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 2, 10, 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                HudQuickActions(
+                  isHudMirrored: isHudMirrored,
+                  onToggleHud: onToggleHud,
+                  isLandscape: isLandscape,
+                  onToggleOrientation: onToggleOrientation,
+                  theme: theme,
+                  buttonWidth: 44,
+                  buttonHeight: 40,
                 ),
-              ),
-              const Spacer(),
-              _buildQuickActionButton(
-                icon: Icons.flip_rounded,
-                isActive: isHudMirrored,
-                tooltip: 'Flip HUD',
-                onTap: onToggleHud,
-              ),
-              const SizedBox(width: 8),
-              _buildQuickActionButton(
-                icon: isLandscape
-                    ? Icons.stay_current_portrait_rounded
-                    : Icons.stay_current_landscape_rounded,
-                isActive: false,
-                tooltip: isLandscape ? 'Portrait Mode' : 'Landscape Mode',
-                onTap: onToggleOrientation,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
         // 2x2 Telemetry Cards Grid
         Expanded(
@@ -128,48 +122,6 @@ class AuxiliaryGrid extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildQuickActionButton({
-    required IconData icon,
-    required bool isActive,
-    required VoidCallback? onTap,
-    required String tooltip,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap?.call();
-        },
-        borderRadius: BorderRadius.circular(10),
-        child: Ink(
-          width: 44,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isActive
-                ? theme.speedNormal.withValues(alpha: 0.9)
-                : theme.cardBackgroundColor,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isActive
-                  ? theme.speedNormal
-                  : theme.cardBorderColor,
-              width: 1.2,
-            ),
-          ),
-          child: Tooltip(
-            message: tooltip,
-            child: Icon(
-              icon,
-              size: 20,
-              color: isActive ? Colors.black : theme.textColor.withValues(alpha: 0.9),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
