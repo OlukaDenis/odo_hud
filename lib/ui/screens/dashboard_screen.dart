@@ -331,6 +331,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     isTripPaused: telemetry.isTripPaused,
                     recordedTripSeconds: telemetry.recordedTripSeconds,
                     recordedTripDistanceKm: telemetry.recordedTripDistanceKm,
+                    isLandscape: isLandscape,
+                    isHudMirrored: telemetry.isHudMirrored,
+                    onToggleHud: () =>
+                        ref.read(telemetryProvider.notifier).toggleHudMirror(),
+                    onToggleOrientation: () => _toggleOrientation(isLandscape),
                   ),
 
                   // Responsive Body

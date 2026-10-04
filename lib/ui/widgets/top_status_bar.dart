@@ -98,7 +98,19 @@ class _TopStatusBarState extends State<TopStatusBar>
           else
             const Spacer(),
 
-          // Right: Action Buttons (Trip History & Settings)
+          // Right: Action Buttons (HUD Flip & Orientation when Landscape, Trip History & Settings)
+          if (widget.isLandscape && widget.onToggleHud != null) ...[
+            HudQuickActions(
+              isHudMirrored: widget.isHudMirrored,
+              onToggleHud: widget.onToggleHud,
+              isLandscape: widget.isLandscape,
+              onToggleOrientation: widget.onToggleOrientation,
+              theme: widget.theme,
+              buttonWidth: 44,
+              buttonHeight: 44,
+            ),
+            const SizedBox(width: 8),
+          ],
           _buildToolbarButton(
             icon: Icons.history_rounded,
             tooltip: 'Trip History',

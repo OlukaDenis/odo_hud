@@ -143,6 +143,54 @@ flutter test
 
 ---
 
+## 🔐 Android Release Signing & Keystore Configuration
+
+To sign release builds for distribution (Google Play Store or manual APK deployment):
+
+### 1. Create your `key.properties` file
+A template is provided at [`android/key.properties.example`](file:///Volumes/Data/Projects/DenTech/odo_hud/android/key.properties.example). Copy it to `android/key.properties`:
+
+```bash
+cp android/key.properties.example android/key.properties
+```
+
+### 2. Configure Keystore Credentials
+Edit `android/key.properties` with your actual keystore details:
+
+```properties
+storePassword=your_keystore_password
+keyPassword=your_key_alias_password
+keyAlias=your_key_alias
+storeFile=upload-keystore.jks
+```
+
+> **Note on `storeFile` path:**
+> - If you place your `.jks` or `.keystore` file in `android/app/` (e.g. `android/app/upload-keystore.jks`), simply specify `storeFile=upload-keystore.jks`.
+> - If placed in `android/`, you can use `storeFile=upload-keystore.jks` or `storeFile=../upload-keystore.jks`.
+> - Absolute paths (e.g., `/Users/username/keystores/upload-keystore.jks`) are also supported.
+
+### 3. CI/CD Environment Variables (Optional)
+If building via CI/CD pipelines (e.g., GitHub Actions, Bitrise), you can optionally pass credentials through environment variables instead of `key.properties`:
+- `STORE_PASSWORD`
+- `KEY_PASSWORD`
+- `KEY_ALIAS`
+- `KEYSTORE_PATH`
+
+### 4. Build Release Artifacts
+
+```bash
+# Build split or universal APK
+flutter build apk --release
+
+# Build Google Play App Bundle (AAB)
+flutter build appbundle --release
+```
+
+> ⚠️ **Security Warning:**
+> Never commit `key.properties` or any `*.jks` / `*.keystore` files to version control. Both are ignored in `.gitignore`.
+
+---
+
 ## 📱 Platform Permissions
 
 ### Android (`AndroidManifest.xml`)
