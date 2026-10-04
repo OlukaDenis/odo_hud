@@ -21,6 +21,16 @@ class HudTheme {
   double get criticalThresholdKmh => config.criticalThresholdKmh;
   bool get isMetric => config.isMetric;
 
+  bool get isDarkMode =>
+      config.backgroundColorValue == 0xFF000000 ||
+      ThemeData.estimateBrightnessForColor(backgroundColor) == Brightness.dark;
+
+  Color get textColor => isDarkMode ? Colors.white : const Color(0xFF111111);
+  Color get subtitleColor =>
+      isDarkMode ? Colors.white60 : const Color(0xFF666666);
+  Color get dividerColor =>
+      isDarkMode ? Colors.white12 : const Color(0x1F000000);
+
   String get activeFontFamily => config.speedFontFamily;
 
   Color getSpeedColor(double speedKmh) {

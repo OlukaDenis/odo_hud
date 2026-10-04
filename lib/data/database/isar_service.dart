@@ -87,25 +87,40 @@ class IsarService {
     return db;
   }
 
+  Future<void> _writeQueue = Future.value();
+
+  Future<T> _enqueueWrite<T>(Future<T> Function(Isar db) action) {
+    final completer = Completer<T>();
+    _writeQueue = _writeQueue.then((_) async {
+      try {
+        final db = await isar;
+        final result = await db.writeTxn(() => action(db));
+        completer.complete(result);
+      } catch (e, st) {
+        completer.completeError(e, st);
+      }
+    }).catchError((_) {});
+    return completer.future;
+  }
+
   Future<TelemetryRecord> getTelemetryRecord() async {
     final db = await isar;
     final record = await db.telemetryRecords.get(1);
     return record ?? (TelemetryRecord()..id = 1);
   }
 
-  Future<void> saveTelemetryRecord(TelemetryRecord record) async {
-    final db = await isar;
-    await db.writeTxn(() async {
+  Future<void> saveTelemetryRecord(TelemetryRecord record) {
+    return _enqueueWrite((db) async {
       record.id = 1;
       record.lastSavedTimestamp = DateTime.now();
       await db.telemetryRecords.put(record);
     });
   }
 
-  Future<void> resetTrip() async {
-    final db = await isar;
-    final record = await db.telemetryRecords.get(1) ?? (TelemetryRecord()..id = 1);
-    await db.writeTxn(() async {
+  Future<void> resetTrip() {
+    return _enqueueWrite((db) async {
+      final record =
+          await db.telemetryRecords.get(1) ?? (TelemetryRecord()..id = 1);
       record.activeTripMeters = 0.0;
       record.activeTripMovingSeconds = 0;
       record.maxSpeedKmh = 0.0;
@@ -129,9 +144,8 @@ class IsarService {
     yield* db.themeConfigRecords.watchObject(1, fireImmediately: true);
   }
 
-  Future<void> saveThemeConfig(ThemeConfigRecord config) async {
-    final db = await isar;
-    await db.writeTxn(() async {
+  Future<void> saveThemeConfig(ThemeConfigRecord config) {
+    return _enqueueWrite((db) async {
       config.id = 1;
       await db.themeConfigRecords.put(config);
     });
@@ -162,9 +176,8 @@ class IsarService {
     }
 
     try {
-      final db = await isar;
-      final config = await getThemeConfig();
-      await db.writeTxn(() async {
+      await _enqueueWrite((db) async {
+        final config = await getThemeConfig();
         config.onboardingCompleted = completed;
         await db.themeConfigRecords.put(config);
       });
@@ -175,9 +188,8 @@ class IsarService {
 
   // --- Trip Records ---
 
-  Future<Id> saveTrip(TripRecord trip) async {
-    final db = await isar;
-    return await db.writeTxn(() async {
+  Future<Id> saveTrip(TripRecord trip) {
+    return _enqueueWrite((db) async {
       return await db.tripRecords.put(trip);
     });
   }
@@ -192,16 +204,14 @@ class IsarService {
     yield* db.tripRecords.where().sortByStartTimeDesc().watch(fireImmediately: true);
   }
 
-  Future<bool> deleteTrip(Id id) async {
-    final db = await isar;
-    return await db.writeTxn(() async {
+  Future<bool> deleteTrip(Id id) {
+    return _enqueueWrite((db) async {
       return await db.tripRecords.delete(id);
     });
   }
 
-  Future<void> clearAllTrips() async {
-    final db = await isar;
-    await db.writeTxn(() async {
+  Future<void> clearAllTrips() {
+    return _enqueueWrite((db) async {
       await db.tripRecords.clear();
     });
   }

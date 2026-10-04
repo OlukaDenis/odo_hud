@@ -109,9 +109,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       builder: (ctx) => Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         decoration: BoxDecoration(
-          color: const Color(0xFF141414),
+          color: theme.isDarkMode
+              ? const Color(0xFF141414)
+              : const Color(0xFFFFFFFF),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+          border: Border.all(color: theme.cardBorderColor, width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -121,7 +123,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white24,
+                color: theme.isDarkMode ? Colors.white24 : Colors.black26,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -133,12 +135,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.cyanAccent.withValues(alpha: 0.15),
+                    color: theme.speedNormal.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check_circle_rounded,
-                    color: AppColors.cyanAccent,
+                    color: theme.speedNormal,
                     size: 24,
                   ),
                 ),
@@ -147,19 +149,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Ride Saved!',
                         style: TextStyle(
                           fontSize: 18,
-                          color: Colors.white,
+                          color: theme.textColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         trip.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white60,
+                          color: theme.subtitleColor,
                         ),
                       ),
                     ],
@@ -173,23 +175,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1B1B1B),
+                color: theme.isDarkMode
+                    ? const Color(0xFF1B1B1B)
+                    : const Color(0xFFF2F2F7),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2A2A2A)),
+                border: Border.all(color: theme.cardBorderColor),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: _buildModalStat('DISTANCE', dist, highlight: true),
+                    child: _buildModalStat('DISTANCE', dist,
+                        highlight: true, theme: theme),
                   ),
                   Expanded(
-                    child: _buildModalStat('DURATION', duration),
+                    child: _buildModalStat('DURATION', duration, theme: theme),
                   ),
                   Expanded(
-                    child: _buildModalStat('AVG SPEED', avgSpeed),
+                    child: _buildModalStat('AVG SPEED', avgSpeed, theme: theme),
                   ),
                   Expanded(
-                    child: _buildModalStat('MAX SPEED', topSpeed),
+                    child: _buildModalStat('MAX SPEED', topSpeed, theme: theme),
                   ),
                 ],
               ),
@@ -202,8 +207,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: const BorderSide(color: Color(0xFF3A3A3A)),
+                      foregroundColor: theme.subtitleColor,
+                      side: BorderSide(color: theme.cardBorderColor),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -242,14 +247,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildModalStat(String label, String value, {bool highlight = false}) {
+  Widget _buildModalStat(String label, String value,
+      {bool highlight = false, required HudTheme theme}) {
     return Column(
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 9,
-            color: Colors.white38,
+            color: theme.subtitleColor,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.6,
           ),
@@ -261,7 +267,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 13,
-            color: highlight ? AppColors.cyanAccent : Colors.white,
+            color: highlight ? theme.speedNormal : theme.textColor,
             fontWeight: FontWeight.bold,
           ),
         ),

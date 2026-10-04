@@ -161,22 +161,23 @@ class ActionBar extends StatelessWidget {
     IconData icon;
     String label;
 
+    final isDark = theme.isDarkMode;
     if (!canPause) {
-      bg = const Color(0xFF161616);
+      bg = isDark ? const Color(0xFF161616) : const Color(0xFFE8E8ED);
       border = theme.cardBorderColor.withValues(alpha: 0.4);
-      fg = Colors.white24;
+      fg = isDark ? Colors.white24 : Colors.black26;
       icon = Icons.pause_rounded;
       label = 'Pause';
     } else if (isPaused) {
-      bg = const Color(0xFF10261A);
+      bg = isDark ? const Color(0xFF10261A) : const Color(0xFFE8F5E9);
       border = const Color(0xFF34D399);
-      fg = const Color(0xFF34D399);
+      fg = isDark ? const Color(0xFF34D399) : const Color(0xFF00897B);
       icon = Icons.play_arrow_rounded;
       label = 'Resume';
     } else {
-      bg = const Color(0xFF281C09);
+      bg = isDark ? const Color(0xFF281C09) : const Color(0xFFFFF3E0);
       border = const Color(0xFFFFB340);
-      fg = const Color(0xFFFFB340);
+      fg = isDark ? const Color(0xFFFFB340) : const Color(0xFFE65100);
       icon = Icons.pause_rounded;
       label = 'Pause';
     }
@@ -301,10 +302,11 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
           final progress = _controller.value;
           final isHolding = progress > 0.0;
 
+          final isDark = widget.theme.isDarkMode;
           return Container(
             height: 54,
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE8E8ED),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isHolding
@@ -342,7 +344,7 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
                             size: 18,
                             color: isHolding
                                 ? AppColors.criticalRed
-                                : Colors.white70,
+                                : widget.theme.subtitleColor,
                           ),
                           const SizedBox(width: 5),
                           Text(
@@ -353,7 +355,7 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
                               fontSize: 14,
                               color: isHolding
                                   ? AppColors.criticalRed
-                                  : Colors.white,
+                                  : widget.theme.textColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

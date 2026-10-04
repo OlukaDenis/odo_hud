@@ -5,6 +5,7 @@ import '../data/database/isar_service.dart';
 import '../services/permission_service.dart';
 import '../ui/screens/dashboard_screen.dart';
 import '../ui/screens/onboarding_screen.dart';
+import '../ui/screens/permissions_screen.dart';
 import '../ui/screens/settings_screen.dart';
 import '../ui/screens/trip_history_screen.dart';
 
@@ -37,6 +38,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/permissions',
+        builder: (context, state) => const PermissionsScreen(),
       ),
       GoRoute(
         path: '/history',

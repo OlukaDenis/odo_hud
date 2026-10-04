@@ -233,6 +233,7 @@ class _TopStatusBarState extends State<TopStatusBar>
     required String tooltip,
     required VoidCallback onTap,
   }) {
+    final isDark = widget.theme.isDarkMode;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -246,7 +247,7 @@ class _TopStatusBarState extends State<TopStatusBar>
           height: 38,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: const Color(0xFF161616),
+            color: isDark ? const Color(0xFF161616) : const Color(0xFFE8E8ED),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: widget.theme.cardBorderColor.withValues(alpha: 0.7),
@@ -258,7 +259,7 @@ class _TopStatusBarState extends State<TopStatusBar>
             child: Icon(
               icon,
               size: 18,
-              color: widget.theme.cardValueColor.withValues(alpha: 0.9),
+              color: widget.theme.textColor.withValues(alpha: 0.9),
             ),
           ),
         ),

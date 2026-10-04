@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/hud_theme.dart';
 import '../data/database/isar_service.dart';
@@ -14,8 +16,29 @@ final hudThemeProvider = Provider<HudTheme>((ref) {
 });
 
 class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
+  Timer? _saveDebounceTimer;
+
   ThemeConfigNotifier() : super(ThemeConfigRecord()..id = 1) {
     _load();
+  }
+
+  static ThemeConfigRecord _clone(ThemeConfigRecord src) {
+    return ThemeConfigRecord()
+      ..id = src.id
+      ..backgroundColorValue = src.backgroundColorValue
+      ..speedColorNormal = src.speedColorNormal
+      ..speedColorWarning = src.speedColorWarning
+      ..speedColorCritical = src.speedColorCritical
+      ..warningThresholdKmh = src.warningThresholdKmh
+      ..criticalThresholdKmh = src.criticalThresholdKmh
+      ..cardBackgroundColor = src.cardBackgroundColor
+      ..cardBorderColor = src.cardBorderColor
+      ..cardLabelColor = src.cardLabelColor
+      ..cardValueColor = src.cardValueColor
+      ..speedFontFamily = src.speedFontFamily
+      ..telemetryFontFamily = src.telemetryFontFamily
+      ..isMetric = src.isMetric
+      ..onboardingCompleted = src.onboardingCompleted;
   }
 
   Future<void> _load() async {
@@ -23,70 +46,127 @@ class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
     state = record;
   }
 
-  Future<void> updateBackgroundColor(int colorValue) async {
-    state.backgroundColorValue = colorValue;
-    await _save();
+  void _debounceSave({Duration delay = const Duration(milliseconds: 150)}) {
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = Timer(delay, () async {
+      try {
+        await IsarService.instance.saveThemeConfig(state);
+      } catch (e) {
+        debugPrint('Error saving theme config in background: $e');
+      }
+    });
   }
 
-  Future<void> updateSpeedColors({
+  void updateBackgroundColor(int colorValue) {
+    final updated = _clone(state);
+    updated.backgroundColorValue = colorValue;
+    state = updated;
+    _debounceSave();
+  }
+
+  void setThemeMode({required bool isDark}) {
+    final updated = _clone(state);
+    if (isDark) {
+      updated.backgroundColorValue = 0xFF000000; // Pure AMOLED Black
+      updated.cardBackgroundColor = 0xFF141414;
+      updated.cardBorderColor = 0xFF222222;
+      updated.cardLabelColor = 0xFF888888;
+      updated.cardValueColor = 0xFFFFFFFF;
+    } else {
+      updated.backgroundColorValue = 0xFFF5F5F7; // Clean Modern Light
+      updated.cardBackgroundColor = 0xFFFFFFFF;
+      updated.cardBorderColor = 0xFFE0E0E0;
+      updated.cardLabelColor = 0xFF666666;
+      updated.cardValueColor = 0xFF121212;
+    }
+    state = updated;
+    _debounceSave();
+  }
+
+  void updateSpeedColors({
     int? normal,
     int? warning,
     int? critical,
-  }) async {
-    if (normal != null) state.speedColorNormal = normal;
-    if (warning != null) state.speedColorWarning = warning;
-    if (critical != null) state.speedColorCritical = critical;
-    await _save();
+  }) {
+    final updated = _clone(state);
+    if (normal != null) updated.speedColorNormal = normal;
+    if (warning != null) updated.speedColorWarning = warning;
+    if (critical != null) updated.speedColorCritical = critical;
+    state = updated;
+    _debounceSave();
   }
 
-  Future<void> updateSpeedThresholds({
+  void updateSpeedThresholds({
     double? warningKmh,
     double? criticalKmh,
-  }) async {
-    if (warningKmh != null) state.warningThresholdKmh = warningKmh;
-    if (criticalKmh != null) state.criticalThresholdKmh = criticalKmh;
-    await _save();
+  }) {
+    final updated = _clone(state);
+    if (warningKmh != null) updated.warningThresholdKmh = warningKmh;
+    if (criticalKmh != null) updated.criticalThresholdKmh = criticalKmh;
+    state = updated;
+    _debounceSave(delay: const Duration(milliseconds: 250));
   }
 
-  Future<void> updateFonts({
+  void updateFonts({
     String? speedFont,
     String? telemetryFont,
-  }) async {
+  }) {
+    final updated = _clone(state);
     final chosen = speedFont ?? telemetryFont;
     if (chosen != null) {
-      state.speedFontFamily = chosen;
-      state.telemetryFontFamily = chosen;
+      updated.speedFontFamily = chosen;
+      updated.telemetryFontFamily = chosen;
     }
-    await _save();
+    state = updated;
+    _debounceSave();
   }
 
-  Future<void> setUnitSystem(bool isMetric) async {
-    state.isMetric = isMetric;
-    await _save();
+  void setUnitSystem(bool isMetric) {
+    if (state.isMetric == isMetric) return;
+    final updated = _clone(state);
+    updated.isMetric = isMetric;
+
+    // Convert thresholds when switching between metric and imperial
+    if (!isMetric) {
+      // km/h -> mph
+      updated.warningThresholdKmh =
+          (updated.warningThresholdKmh * 0.621371).roundToDouble();
+      updated.criticalThresholdKmh =
+          (updated.criticalThresholdKmh * 0.621371).roundToDouble();
+    } else {
+      // mph -> km/h
+      updated.warningThresholdKmh =
+          (updated.warningThresholdKmh / 0.621371).roundToDouble();
+      updated.criticalThresholdKmh =
+          (updated.criticalThresholdKmh / 0.621371).roundToDouble();
+    }
+
+    state = updated;
+    _debounceSave();
   }
 
-  Future<void> toggleUnitSystem() async {
-    state.isMetric = !state.isMetric;
-    await _save();
+  void toggleUnitSystem() {
+    setUnitSystem(!state.isMetric);
   }
 
-  Future<void> updateCardColors({
+  void updateCardColors({
     int? background,
     int? border,
     int? label,
     int? value,
-  }) async {
-    if (background != null) state.cardBackgroundColor = background;
-    if (border != null) state.cardBorderColor = border;
-    if (label != null) state.cardLabelColor = label;
-    if (value != null) state.cardValueColor = value;
-    await _save();
+  }) {
+    final updated = _clone(state);
+    if (background != null) updated.cardBackgroundColor = background;
+    if (border != null) updated.cardBorderColor = border;
+    if (label != null) updated.cardLabelColor = label;
+    if (value != null) updated.cardValueColor = value;
+    state = updated;
+    _debounceSave();
   }
 
-  Future<void> _save() async {
-    await IsarService.instance.saveThemeConfig(state);
-    // Trigger state change notification by cloning or reassigning
-    final updated = await IsarService.instance.getThemeConfig();
-    state = updated;
+  @override
+  void dispose() {
+    _saveDebounceTimer?.cancel();
+    super.dispose();
   }
 }
