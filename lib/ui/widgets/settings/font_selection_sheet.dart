@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/hud_theme.dart';
-import '../../../data/models/theme_config_record.dart';
 import '../../../providers/theme_provider.dart';
 
 class FontSelectionSheet extends ConsumerWidget {

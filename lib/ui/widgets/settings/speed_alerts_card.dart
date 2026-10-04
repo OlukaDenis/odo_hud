@@ -28,11 +28,11 @@ class SpeedAlertsCard extends ConsumerWidget {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: theme.speedCritical.withValues(alpha: 0.15),
+                color: theme.speedNormal.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(Icons.speed_rounded,
-                  color: theme.speedCritical, size: 20),
+                  color: theme.speedNormal, size: 20),
             ),
             title: Text(
               'Speed Alert Thresholds',
@@ -104,10 +104,10 @@ class SpeedAlertsCard extends ConsumerWidget {
         style: theme
             .getTelemetryTextStyle(
               fontSize: 13.0,
-              color: theme.speedNormal,
-              fontWeight: FontWeight.bold,
+              color: theme.subtitleColor,
+              fontWeight: FontWeight.normal,
             )
-            .copyWith(letterSpacing: 0.6),
+            .copyWith(letterSpacing: 0.2),
       ),
     );
   }

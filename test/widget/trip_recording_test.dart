@@ -33,7 +33,7 @@ void main() {
       );
 
       // Verify GPS lock pill is rendered
-      expect(find.text('GPS Connected (±2m)'), findsOneWidget);
+      expect(find.text('GPS'), findsOneWidget);
 
       // Verify REC pill is rendered with formatted time and distance
       expect(find.textContaining('REC'), findsOneWidget);

@@ -66,11 +66,11 @@ class _TopStatusBarState extends State<TopStatusBar>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: widget.theme.cardBackgroundColor.withValues(alpha: 0.85),
+        color: widget.theme.cardBackgroundColor,
         border: Border(
           bottom: BorderSide(
-            color: widget.theme.cardBorderColor.withValues(alpha: 0.6),
-            width: 1,
+            color: widget.theme.cardBorderColor,
+            width: 1.2,
           ),
         ),
       ),
@@ -109,56 +109,110 @@ class _TopStatusBarState extends State<TopStatusBar>
   Widget _buildGpsPill() {
     final locked = widget.isGpsLocked;
     final pillColor = locked ? AppColors.gpsLocked : AppColors.gpsSearching;
-    final text = locked
-        ? 'GPS Connected (±${widget.gpsAccuracyMeters.toStringAsFixed(0)}m)'
-        : 'Finding GPS...';
+    final accuracy = widget.gpsAccuracyMeters;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: pillColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: pillColor.withValues(alpha: 0.4),
-          width: 1,
+    // Calculate 1 to 4 active signal bars based on satellite accuracy
+    final int activeBars;
+    if (!locked) {
+      activeBars = 1;
+    } else if (accuracy <= 6) {
+      activeBars = 4;
+    } else if (accuracy <= 14) {
+      activeBars = 3;
+    } else if (accuracy <= 25) {
+      activeBars = 2;
+    } else {
+      activeBars = 1;
+    }
+
+    final tooltipMsg = locked
+        ? 'GPS Connected: ±${accuracy.toStringAsFixed(0)}m accuracy'
+        : 'Acquiring GPS Signal...';
+
+    return Tooltip(
+      message: tooltipMsg,
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: widget.theme.cardBackgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: widget.theme.cardBorderColor,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Network/Satellite signal bars
+            _buildSignalBars(
+              activeBars: activeBars,
+              color: pillColor,
+              isSearching: !locked,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'GPS',
+              style: widget.theme.getTelemetryTextStyle(
+                fontSize: 12,
+                color: locked ? widget.theme.textColor : pillColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
+    );
+  }
+
+  Widget _buildSignalBars({
+    required int activeBars,
+    required Color color,
+    required bool isSearching,
+  }) {
+    // 4 stepped bars with heights: 4, 7, 10, 13
+    const barHeights = [4.0, 7.0, 10.0, 13.0];
+    const barWidth = 3.0;
+
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        final searchingAlpha = 0.3 + (_pulseAnimation.value * 0.7);
+
+        return SizedBox(
+          height: 14,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(4, (index) {
+              final isActive = index < activeBars;
+              final barColor = isSearching
+                  ? color.withValues(alpha: searchingAlpha)
+                  : (isActive ? color : color.withValues(alpha: 0.18));
+
               return Container(
-                width: 8,
-                height: 8,
+                margin: EdgeInsets.only(right: index < 3 ? 2.5 : 0),
+                width: barWidth,
+                height: barHeights[index],
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: pillColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: pillColor.withValues(
-                        alpha: locked ? 0.3 + (_pulseAnimation.value * 0.4) : 0.6,
-                      ),
-                      blurRadius: 6,
-                      spreadRadius: locked ? _pulseAnimation.value * 2 : 1,
-                    ),
-                  ],
+                  color: barColor,
+                  borderRadius: BorderRadius.circular(1),
+                  boxShadow: (isActive && !isSearching)
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.4),
+                            blurRadius: 3,
+                          ),
+                        ]
+                      : null,
                 ),
               );
-            },
+            }),
           ),
-          const SizedBox(width: 7),
-          Text(
-            text,
-            style: widget.theme.getTelemetryTextStyle(
-              fontSize: 11,
-              color: pillColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -233,7 +287,6 @@ class _TopStatusBarState extends State<TopStatusBar>
     required String tooltip,
     required VoidCallback onTap,
   }) {
-    final isDark = widget.theme.isDarkMode;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -243,23 +296,23 @@ class _TopStatusBarState extends State<TopStatusBar>
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          width: 38,
-          height: 38,
+          width: 44,
+          height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF161616) : const Color(0xFFE8E8ED),
+            color: widget.theme.cardBackgroundColor,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: widget.theme.cardBorderColor.withValues(alpha: 0.7),
-              width: 1,
+              color: widget.theme.cardBorderColor,
+              width: 1.2,
             ),
           ),
           child: Tooltip(
             message: tooltip,
             child: Icon(
               icon,
-              size: 18,
-              color: widget.theme.textColor.withValues(alpha: 0.9),
+              size: 21,
+              color: widget.theme.textColor.withValues(alpha: 0.95),
             ),
           ),
         ),

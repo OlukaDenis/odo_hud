@@ -25,8 +25,8 @@ void main() {
 
       // Verify Appearance & Theme Card
       expect(find.text('APPEARANCE & THEME'), findsOneWidget);
-      expect(find.text('Dark (AMOLED)'), findsOneWidget);
-      expect(find.text('Light Mode'), findsOneWidget);
+      expect(find.text('Theme Appearance'), findsOneWidget);
+      expect(find.text('Dark (AMOLED Black)'), findsOneWidget);
       expect(find.text('Speedometer Font'), findsOneWidget);
       expect(find.text('Speed Display Colors'), findsOneWidget);
 

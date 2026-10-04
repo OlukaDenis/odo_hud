@@ -20,11 +20,11 @@ class MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: theme.cardBackgroundColor,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.cardBorderColor, width: 1.5),
+        border: Border.all(color: theme.cardBorderColor, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

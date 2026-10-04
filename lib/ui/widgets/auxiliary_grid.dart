@@ -55,7 +55,7 @@ class AuxiliaryGrid extends StatelessWidget {
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
-                  color: Colors.white.withValues(alpha: 0.35),
+                  color: theme.subtitleColor.withValues(alpha: 0.7),
                 ),
               ),
               const Spacer(),
@@ -144,28 +144,28 @@ class AuxiliaryGrid extends StatelessWidget {
           HapticFeedback.selectionClick();
           onTap?.call();
         },
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(10),
         child: Ink(
-          width: 38,
-          height: 34,
+          width: 44,
+          height: 40,
           decoration: BoxDecoration(
             color: isActive
                 ? theme.speedNormal.withValues(alpha: 0.9)
-                : const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(9),
+                : theme.cardBackgroundColor,
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isActive
                   ? theme.speedNormal
-                  : theme.cardBorderColor.withValues(alpha: 0.7),
-              width: 1,
+                  : theme.cardBorderColor,
+              width: 1.2,
             ),
           ),
           child: Tooltip(
             message: tooltip,
             child: Icon(
               icon,
-              size: 18,
-              color: isActive ? Colors.black : theme.speedNormal,
+              size: 20,
+              color: isActive ? Colors.black : theme.textColor.withValues(alpha: 0.9),
             ),
           ),
         ),

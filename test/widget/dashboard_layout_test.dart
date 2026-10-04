@@ -75,7 +75,7 @@ void main() {
         ),
       );
 
-      expect(find.text('GPS Connected (±3m)'), findsOneWidget);
+      expect(find.text('GPS'), findsOneWidget);
       expect(find.byIcon(Icons.history_rounded), findsOneWidget);
       expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
 

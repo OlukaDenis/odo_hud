@@ -44,11 +44,11 @@ class ActionBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.cardBackgroundColor.withValues(alpha: 0.85),
+        color: theme.cardBackgroundColor,
         border: Border(
           top: BorderSide(
-            color: theme.cardBorderColor.withValues(alpha: 0.6),
-            width: 1,
+            color: theme.cardBorderColor,
+            width: 1.2,
           ),
         ),
       ),

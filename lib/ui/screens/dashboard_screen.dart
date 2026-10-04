@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../data/models/trip_record.dart';
@@ -371,9 +370,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Row(
       children: [
-        // Left 50%: Speed Numeral
+        // Left 55%: Speed Numeral
         Expanded(
-          flex: 1,
+          flex: 11,
           child: SpeedDisplay(
             currentSpeed: currentSpeed,
             speedKmh: telemetry.currentSpeedKmh,
@@ -382,9 +381,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
 
-        // Right 50%: 2x2 Auxiliary Grid with top HUD & orientation actions
+        // Right 45%: 2x2 Auxiliary Grid with top HUD & orientation actions
         Expanded(
-          flex: 1,
+          flex: 9,
           child: AuxiliaryGrid(
             telemetry: telemetry,
             theme: theme,
@@ -411,9 +410,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Column(
       children: [
-        // Upper 48%: Speed Numeral
+        // Upper 60%: Dominant Speed Numeral
         Expanded(
-          flex: 5,
+          flex: 6,
           child: SpeedDisplay(
             currentSpeed: currentSpeed,
             speedKmh: telemetry.currentSpeedKmh,
@@ -422,9 +421,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
 
-        // Lower 52%: 2x2 Auxiliary Grid with top HUD & orientation actions
+        // Lower 40%: Compact 2x2 Auxiliary Grid with HUD & orientation actions
         Expanded(
-          flex: 5,
+          flex: 4,
           child: AuxiliaryGrid(
             telemetry: telemetry,
             theme: theme,

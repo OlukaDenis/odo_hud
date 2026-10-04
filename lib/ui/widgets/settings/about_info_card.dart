@@ -68,10 +68,10 @@ class AboutInfoCard extends ConsumerWidget {
         style: theme
             .getTelemetryTextStyle(
               fontSize: 13.0,
-              color: theme.speedNormal,
-              fontWeight: FontWeight.bold,
+              color: theme.subtitleColor,
+              fontWeight: FontWeight.normal,
             )
-            .copyWith(letterSpacing: 0.6),
+            .copyWith(letterSpacing: 0.2),
       ),
     );
   }

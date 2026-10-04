@@ -43,6 +43,15 @@ class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
 
   Future<void> _load() async {
     final record = await IsarService.instance.getThemeConfig();
+    // Auto-migrate legacy low-contrast dark card backgrounds to high-contrast surface
+    if (record.backgroundColorValue == 0xFF000000 &&
+        (record.cardBackgroundColor == 0xFF121212 ||
+            record.cardBackgroundColor == 0xFF141414)) {
+      record.cardBackgroundColor = 0xFF1E2026;
+      record.cardBorderColor = 0xFF353945;
+      record.cardLabelColor = 0xFF9E9EB2;
+      unawaited(IsarService.instance.saveThemeConfig(record));
+    }
     state = record;
   }
 
@@ -68,9 +77,9 @@ class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {
     final updated = _clone(state);
     if (isDark) {
       updated.backgroundColorValue = 0xFF000000; // Pure AMOLED Black
-      updated.cardBackgroundColor = 0xFF141414;
-      updated.cardBorderColor = 0xFF222222;
-      updated.cardLabelColor = 0xFF888888;
+      updated.cardBackgroundColor = 0xFF1E2026; // High-contrast elevated dark surface
+      updated.cardBorderColor = 0xFF353945;     // Crisp distinctive card border
+      updated.cardLabelColor = 0xFF9E9EB2;      // Clear high-contrast labels for poor vision
       updated.cardValueColor = 0xFFFFFFFF;
     } else {
       updated.backgroundColorValue = 0xFFF5F5F7; // Clean Modern Light

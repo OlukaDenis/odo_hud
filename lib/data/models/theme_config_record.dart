@@ -13,9 +13,9 @@ class ThemeConfigRecord {
   double warningThresholdKmh = 100.0;
   double criticalThresholdKmh = 130.0;
 
-  int cardBackgroundColor = 0xFF121212;
-  int cardBorderColor = 0xFF222222;
-  int cardLabelColor = 0xFF888888;
+  int cardBackgroundColor = 0xFF1E2026;
+  int cardBorderColor = 0xFF353945;
+  int cardLabelColor = 0xFF9E9EB2;
   int cardValueColor = 0xFFFFFFFF;
 
   String speedFontFamily = 'Inter';

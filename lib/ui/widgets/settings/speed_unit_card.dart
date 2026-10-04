@@ -28,8 +28,8 @@ class SpeedUnitCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildUnitChip(
-                  label: 'KM/H (Metric)',
-                  sublabel: 'Default standard',
+                  label: 'KM/H',
+                  sublabel: 'Kilometers per hour',
                   isSelected: config.isMetric,
                   onTap: () => notifier.setUnitSystem(true),
                   theme: theme,
@@ -38,7 +38,7 @@ class SpeedUnitCard extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _buildUnitChip(
-                  label: 'MPH (Imperial)',
+                  label: 'MPH',
                   sublabel: 'Miles per hour',
                   isSelected: !config.isMetric,
                   onTap: () => notifier.setUnitSystem(false),
@@ -119,10 +119,10 @@ class SpeedUnitCard extends ConsumerWidget {
         style: theme
             .getTelemetryTextStyle(
               fontSize: 13.0,
-              color: theme.speedNormal,
-              fontWeight: FontWeight.bold,
+              color: theme.subtitleColor,
+              fontWeight: FontWeight.normal,
             )
-            .copyWith(letterSpacing: 0.6),
+            .copyWith(letterSpacing: 0.2),
       ),
     );
   }

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/hud_theme.dart';
 import '../../providers/theme_provider.dart';
 import '../widgets/settings/about_info_card.dart';
 import '../widgets/settings/appearance_theme_card.dart';
-import '../widgets/settings/live_hud_preview_card.dart';
 import '../widgets/settings/permissions_nav_card.dart';
 import '../widgets/settings/speed_alerts_card.dart';
 import '../widgets/settings/speed_unit_card.dart';
@@ -41,10 +39,6 @@ class SettingsScreen extends ConsumerWidget {
           // 1. SPEED UNIT SYSTEM (TOP OF SCREEN - KM/H DEFAULT)
           SpeedUnitCard(),
           SizedBox(height: 20),
-
-          // 2. LIVE HUD PREVIEW
-          // LiveHudPreviewCard(),
-          // SizedBox(height: 20),
 
           // 3. APPEARANCE & THEME (DARK AMOLED DEFAULT VS LIGHT, FONTS, COLORS)
           AppearanceThemeCard(),
