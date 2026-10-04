@@ -95,7 +95,7 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
         );
       }
 
-      if (state.isRecordingTrip) {
+      if (state.isRecordingTrip && !state.isTripPaused) {
         _recordedTripSeconds++;
         state = state.copyWith(
           recordedTripSeconds: _recordedTripSeconds,
@@ -146,7 +146,7 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
           }
         }
 
-        if (state.isRecordingTrip) {
+        if (state.isRecordingTrip && !state.isTripPaused) {
           _recordedTripMeters += update.distanceDeltaMeters;
           if (speedKmh > _recordedTripMaxSpeedKmh) {
             _recordedTripMaxSpeedKmh = speedKmh;
@@ -233,11 +233,17 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
     state = state.copyWith(
       isRecordingTrip: true,
+      isTripPaused: false,
       recordingStartTime: _recordingStartTime,
       recordedTripDistanceKm: 0.0,
       recordedTripSeconds: 0,
       recordedTripMaxSpeedKmh: _recordedTripMaxSpeedKmh,
     );
+  }
+
+  void togglePauseTripRecording() {
+    if (!state.isRecordingTrip) return;
+    state = state.copyWith(isTripPaused: !state.isTripPaused);
   }
 
   Future<TripRecord?> stopTripRecording() async {
@@ -268,6 +274,7 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
     state = state.copyWith(
       isRecordingTrip: false,
+      isTripPaused: false,
       recordingStartTime: null,
       recordedTripDistanceKm: 0.0,
       recordedTripSeconds: 0,

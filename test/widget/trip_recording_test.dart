@@ -95,6 +95,52 @@ void main() {
       expect(find.text('Start Trip'), findsNothing);
     });
 
+    testWidgets('ActionBar toggles between Pause and Resume states',
+        (tester) async {
+      bool pauseToggled = false;
+
+      // Active recording and not paused
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ActionBar(
+              isRecordingTrip: true,
+              onToggleRecording: () {},
+              isTripPaused: false,
+              onTogglePause: () => pauseToggled = true,
+              onResetTrip: () {},
+              theme: testTheme,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Pause'), findsOneWidget);
+      expect(find.text('Resume'), findsNothing);
+
+      await tester.tap(find.text('Pause'));
+      expect(pauseToggled, isTrue);
+
+      // Active recording and paused
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ActionBar(
+              isRecordingTrip: true,
+              onToggleRecording: () {},
+              isTripPaused: true,
+              onTogglePause: () {},
+              onResetTrip: () {},
+              theme: testTheme,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Resume'), findsOneWidget);
+      expect(find.text('Pause'), findsNothing);
+    });
+
     testWidgets(
         'TripHistoryScreen renders empty state without throwing type error',
         (tester) async {

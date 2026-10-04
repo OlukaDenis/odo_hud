@@ -14,6 +14,7 @@ class TopStatusBar extends StatefulWidget {
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenTripHistory;
   final bool isRecordingTrip;
+  final bool isTripPaused;
   final int recordedTripSeconds;
   final double recordedTripDistanceKm;
   final int batteryPercent; // Retained for backwards compatibility if needed
@@ -26,6 +27,7 @@ class TopStatusBar extends StatefulWidget {
     required this.onOpenSettings,
     required this.onOpenTripHistory,
     this.isRecordingTrip = false,
+    this.isTripPaused = false,
     this.recordedTripSeconds = 0,
     this.recordedTripDistanceKm = 0.0,
     this.batteryPercent = 100,
@@ -165,6 +167,9 @@ class _TopStatusBarState extends State<TopStatusBar>
         ? '${widget.recordedTripDistanceKm.toStringAsFixed(1)} km'
         : '${UnitConverter.kmToMiles(widget.recordedTripDistanceKm).toStringAsFixed(1)} mi';
     final timeStr = UnitConverter.formatMovingTime(widget.recordedTripSeconds);
+    final isPaused = widget.isTripPaused;
+    final color = isPaused ? const Color(0xFFFFB340) : Colors.redAccent;
+    final statusText = isPaused ? 'PAUSED' : 'REC';
 
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -173,10 +178,10 @@ class _TopStatusBarState extends State<TopStatusBar>
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: Colors.redAccent.withValues(alpha: 0.14),
+            color: color.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.redAccent.withValues(
+              color: color.withValues(
                 alpha: 0.4 + (_pulseAnimation.value * 0.4),
               ),
               width: 1,
@@ -191,10 +196,10 @@ class _TopStatusBarState extends State<TopStatusBar>
                 height: 7,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.redAccent,
+                  color: color,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.redAccent.withValues(
+                      color: color.withValues(
                         alpha: 0.5 + (_pulseAnimation.value * 0.5),
                       ),
                       blurRadius: 6,
@@ -206,12 +211,12 @@ class _TopStatusBarState extends State<TopStatusBar>
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'REC  $timeStr • $distStr',
+                  '$statusText  $timeStr • $distStr',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: widget.theme.getTelemetryTextStyle(
                     fontSize: 11,
-                    color: Colors.redAccent,
+                    color: color,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

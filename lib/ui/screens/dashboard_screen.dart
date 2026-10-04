@@ -311,6 +311,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     onOpenSettings: _openSettings,
                     onOpenTripHistory: _openTripHistory,
                     isRecordingTrip: telemetry.isRecordingTrip,
+                    isTripPaused: telemetry.isTripPaused,
                     recordedTripSeconds: telemetry.recordedTripSeconds,
                     recordedTripDistanceKm: telemetry.recordedTripDistanceKm,
                   ),
@@ -318,19 +319,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   // Responsive Body
                   Expanded(
                     child: isLandscape
-                        ? _buildLandscapeLayout(telemetry, theme, isMetric)
-                        : _buildPortraitLayout(telemetry, theme, isMetric),
+                        ? _buildLandscapeLayout(
+                            telemetry,
+                            theme,
+                            isMetric,
+                            isLandscape: isLandscape,
+                          )
+                        : _buildPortraitLayout(
+                            telemetry,
+                            theme,
+                            isMetric,
+                            isLandscape: isLandscape,
+                          ),
                   ),
 
-                  // Bottom Action Bar (Mirror, Orientation Toggle, Start/Stop Trip, Guarded Reset)
+                  // Bottom Action Bar (Enlarged: Start/Stop, Pause/Resume, Guarded Reset)
                   ActionBar(
-                    isHudMirrored: telemetry.isHudMirrored,
-                    onToggleHud: () =>
-                        ref.read(telemetryProvider.notifier).toggleHudMirror(),
-                    isLandscape: isLandscape,
-                    onToggleOrientation: () => _toggleOrientation(isLandscape),
                     isRecordingTrip: telemetry.isRecordingTrip,
                     onToggleRecording: _handleToggleRecording,
+                    isTripPaused: telemetry.isTripPaused,
+                    onTogglePause: () => ref
+                        .read(telemetryProvider.notifier)
+                        .togglePauseTripRecording(),
                     onResetTrip: () =>
                         ref.read(telemetryProvider.notifier).resetTrip(),
                     theme: theme,
@@ -347,8 +357,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildLandscapeLayout(
     TelemetryState telemetry,
     HudTheme theme,
-    bool isMetric,
-  ) {
+    bool isMetric, {
+    required bool isLandscape,
+  }) {
     final currentSpeed =
         isMetric ? telemetry.currentSpeedKmh : telemetry.currentSpeedMph;
 
@@ -365,13 +376,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
 
-        // Right 50%: 2x2 Auxiliary Grid
+        // Right 50%: 2x2 Auxiliary Grid with top HUD & orientation actions
         Expanded(
           flex: 1,
           child: AuxiliaryGrid(
             telemetry: telemetry,
             theme: theme,
             isMetric: isMetric,
+            isHudMirrored: telemetry.isHudMirrored,
+            onToggleHud: () =>
+                ref.read(telemetryProvider.notifier).toggleHudMirror(),
+            isLandscape: isLandscape,
+            onToggleOrientation: () => _toggleOrientation(isLandscape),
           ),
         ),
       ],
@@ -381,8 +397,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildPortraitLayout(
     TelemetryState telemetry,
     HudTheme theme,
-    bool isMetric,
-  ) {
+    bool isMetric, {
+    required bool isLandscape,
+  }) {
     final currentSpeed =
         isMetric ? telemetry.currentSpeedKmh : telemetry.currentSpeedMph;
 
@@ -399,13 +416,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
 
-        // Lower 52%: 2x2 Auxiliary Grid
+        // Lower 52%: 2x2 Auxiliary Grid with top HUD & orientation actions
         Expanded(
           flex: 5,
           child: AuxiliaryGrid(
             telemetry: telemetry,
             theme: theme,
             isMetric: isMetric,
+            isHudMirrored: telemetry.isHudMirrored,
+            onToggleHud: () =>
+                ref.read(telemetryProvider.notifier).toggleHudMirror(),
+            isLandscape: isLandscape,
+            onToggleOrientation: () => _toggleOrientation(isLandscape),
           ),
         ),
       ],

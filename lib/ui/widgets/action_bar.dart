@@ -4,36 +4,47 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/hud_theme.dart';
 
+/// Enlarged Ergonomic Bottom Action Bar.
+/// Exclusively houses the trip control actions:
+/// 1. Start / Stop Trip Recording
+/// 2. Pause / Resume Recording
+/// 3. Guarded Hold-to-Reset Trip
 class ActionBar extends StatelessWidget {
-  final bool isHudMirrored;
-  final VoidCallback onToggleHud;
-  final bool isLandscape;
-  final VoidCallback onToggleOrientation;
   final bool isRecordingTrip;
   final VoidCallback onToggleRecording;
+  final bool isTripPaused;
+  final VoidCallback? onTogglePause;
   final VoidCallback onResetTrip;
-  final VoidCallback? onOpenSettings; // Retained as optional for backwards compatibility
   final HudTheme theme;
+
+  // Retained as optional for backwards compatibility
+  final bool isHudMirrored;
+  final VoidCallback? onToggleHud;
+  final bool isLandscape;
+  final VoidCallback? onToggleOrientation;
+  final VoidCallback? onOpenSettings;
 
   const ActionBar({
     super.key,
-    required this.isHudMirrored,
-    required this.onToggleHud,
-    required this.isLandscape,
-    required this.onToggleOrientation,
     required this.isRecordingTrip,
     required this.onToggleRecording,
+    this.isTripPaused = false,
+    this.onTogglePause,
     required this.onResetTrip,
-    this.onOpenSettings,
     required this.theme,
+    this.isHudMirrored = false,
+    this.onToggleHud,
+    this.isLandscape = false,
+    this.onToggleOrientation,
+    this.onOpenSettings,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.cardBackgroundColor.withValues(alpha: 0.8),
+        color: theme.cardBackgroundColor.withValues(alpha: 0.85),
         border: Border(
           top: BorderSide(
             color: theme.cardBorderColor.withValues(alpha: 0.6),
@@ -41,142 +52,184 @@ class ActionBar extends StatelessWidget {
           ),
         ),
       ),
-      child: Row(
-        children: [
-          // 1. HUD Mirror Button
-          Expanded(
-            child: _buildHudMirrorButton(),
-          ),
-          const SizedBox(width: 8),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 54,
+          child: Row(
+            children: [
+              // 1. Pause / Resume Trip Recording Button
+              Expanded(
+                flex: 4,
+                child: _buildPauseResumeButton(),
+              ),
+              const SizedBox(width: 10),
 
-          // 2. Orientation Toggle Button
-          Expanded(
-            child: _buildOrientationButton(),
-          ),
-          const SizedBox(width: 8),
+              // 2. Start / Stop Trip Recording Button (Solid in Middle)
+              Expanded(
+                flex: 5,
+                child: _buildStartStopButton(),
+              ),
+              const SizedBox(width: 10),
 
-          // 3. Start / Stop Trip Recording Button (Replacing Settings migrated to top toolbar)
-          Expanded(
-            flex: 1,
-            child: _buildTripRecordingButton(),
+              // 3. Guarded 1500ms Hold-To-Reset Button
+              Expanded(
+                flex: 4,
+                child: _GuardedResetButton(
+                  onReset: onResetTrip,
+                  theme: theme,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
+        ),
+      ),
+    );
+  }
 
-          // 4. Guarded 1500ms Hold-To-Reset Button
-          Expanded(
-            child: _GuardedResetButton(
-              onReset: onResetTrip,
-              theme: theme,
+  Widget _buildStartStopButton() {
+    final active = isRecordingTrip;
+    final solidBg = active ? const Color(0xFFFF3B30) : theme.speedNormal;
+    final solidFg = active
+        ? Colors.white
+        : (ThemeData.estimateBrightnessForColor(solidBg) == Brightness.dark
+            ? Colors.white
+            : Colors.black);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          onToggleRecording();
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: solidBg,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: solidBg.withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      active
+                          ? Icons.stop_rounded
+                          : Icons.play_arrow_rounded,
+                      size: 22,
+                      color: solidFg,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      active ? 'Stop Trip' : 'Start Trip',
+                      style: theme.getTelemetryTextStyle(
+                        fontSize: 14,
+                        color: solidFg,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildHudMirrorButton() {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isHudMirrored ? theme.speedNormal : const Color(0xFF1E1E1E),
-        foregroundColor: isHudMirrored ? Colors.black : Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(
-            color: isHudMirrored ? theme.speedNormal : theme.cardBorderColor,
+  Widget _buildPauseResumeButton() {
+    final canPause = isRecordingTrip;
+    final isPaused = isTripPaused;
+
+    Color bg;
+    Color border;
+    Color fg;
+    IconData icon;
+    String label;
+
+    if (!canPause) {
+      bg = const Color(0xFF161616);
+      border = theme.cardBorderColor.withValues(alpha: 0.4);
+      fg = Colors.white24;
+      icon = Icons.pause_rounded;
+      label = 'Pause';
+    } else if (isPaused) {
+      bg = const Color(0xFF10261A);
+      border = const Color(0xFF34D399);
+      fg = const Color(0xFF34D399);
+      icon = Icons.play_arrow_rounded;
+      label = 'Resume';
+    } else {
+      bg = const Color(0xFF281C09);
+      border = const Color(0xFFFFB340);
+      fg = const Color(0xFFFFB340);
+      icon = Icons.pause_rounded;
+      label = 'Pause';
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: canPause
+            ? () {
+                HapticFeedback.mediumImpact();
+                onTogglePause?.call();
+              }
+            : null,
+        borderRadius: BorderRadius.circular(10),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: border,
+              width: canPause ? 1.5 : 1.0,
+            ),
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: fg,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: theme.getTelemetryTextStyle(
+                        fontSize: 14,
+                        color: fg,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
-      icon: Icon(
-        Icons.flip,
-        size: 16,
-        color: isHudMirrored ? Colors.black : theme.speedNormal,
-      ),
-      label: Text(
-        isHudMirrored ? 'Mirrored' : 'HUD Flip',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.getTelemetryTextStyle(
-          fontSize: 12,
-          color: isHudMirrored ? Colors.black : Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      onPressed: onToggleHud,
-    );
-  }
-
-  Widget _buildOrientationButton() {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1E1E1E),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: theme.cardBorderColor),
-        ),
-      ),
-      icon: Icon(
-        isLandscape
-            ? Icons.stay_current_portrait_rounded
-            : Icons.stay_current_landscape_rounded,
-        size: 16,
-        color: theme.speedNormal,
-      ),
-      label: Text(
-        isLandscape ? 'Portrait' : 'Landscape',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.getTelemetryTextStyle(
-          fontSize: 12,
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      onPressed: onToggleOrientation,
-    );
-  }
-
-  Widget _buildTripRecordingButton() {
-    final active = isRecordingTrip;
-
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: active ? const Color(0xFF2C1014) : const Color(0xFF1E1E1E),
-        foregroundColor: active ? Colors.redAccent : Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        elevation: active ? 2 : 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(
-            color: active
-                ? Colors.redAccent
-                : theme.cardBorderColor.withValues(alpha: 0.9),
-            width: active ? 1.5 : 1.0,
-          ),
-        ),
-      ),
-      icon: Icon(
-        active ? Icons.stop_rounded : Icons.fiber_manual_record_rounded,
-        size: 16,
-        color: active ? Colors.redAccent : const Color(0xFFFF455B),
-      ),
-      label: Text(
-        active ? 'Stop Trip' : 'Start Trip',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: theme.getTelemetryTextStyle(
-          fontSize: 12,
-          color: active ? Colors.redAccent : Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      onPressed: () {
-        HapticFeedback.mediumImpact();
-        onToggleRecording();
-      },
     );
   }
 }
@@ -249,19 +302,19 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
           final isHolding = progress > 0.0;
 
           return Container(
-            height: 48,
+            height: 54,
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isHolding
                     ? AppColors.criticalRed
-                    : widget.theme.cardBorderColor,
+                    : widget.theme.cardBorderColor.withValues(alpha: 0.8),
                 width: isHolding ? 1.5 : 1.0,
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(9),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -277,30 +330,36 @@ class _GuardedResetButtonState extends State<_GuardedResetButton>
                   ),
 
                   // Button Text & Icon
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.refresh,
-                        size: 14,
-                        color:
-                            isHolding ? AppColors.criticalRed : Colors.white70,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.refresh_rounded,
+                            size: 18,
+                            color: isHolding
+                                ? AppColors.criticalRed
+                                : Colors.white70,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            isHolding
+                                ? '${(1.5 - progress * 1.5).toStringAsFixed(1)}s'
+                                : 'Reset Trip',
+                            style: widget.theme.getTelemetryTextStyle(
+                              fontSize: 14,
+                              color: isHolding
+                                  ? AppColors.criticalRed
+                                  : Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        isHolding
-                            ? '${(1.5 - progress * 1.5).toStringAsFixed(1)}s'
-                            : 'Reset Trip',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: widget.theme.getTelemetryTextStyle(
-                          fontSize: 11,
-                          color:
-                              isHolding ? AppColors.criticalRed : Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),

@@ -105,7 +105,12 @@ void main() {
       expect(find.text('KM'), findsOneWidget);
     });
 
-    testWidgets('AuxiliaryGrid renders all 4 telemetry tiles', (tester) async {
+    testWidgets(
+        'AuxiliaryGrid renders all 4 telemetry tiles and top icon-only actions',
+        (tester) async {
+      bool hudToggled = false;
+      bool orientationToggled = false;
+
       const telemetry = TelemetryState(
         tripDistanceKm: 34.8,
         movingTimeSeconds: 2535, // 00:42:15
@@ -119,42 +124,59 @@ void main() {
           home: Scaffold(
             body: SizedBox(
               width: 400,
-              height: 300,
+              height: 400,
               child: AuxiliaryGrid(
                 telemetry: telemetry,
                 theme: testTheme,
                 isMetric: true,
+                isHudMirrored: false,
+                onToggleHud: () => hudToggled = true,
+                isLandscape: false,
+                onToggleOrientation: () => orientationToggled = true,
               ),
             ),
           ),
         ),
       );
 
+      // Verify header label and metric cards
+      expect(find.text('LIVE TELEMETRY'), findsOneWidget);
       expect(find.text('Trip Distance'), findsOneWidget);
       expect(find.text('Moving Time'), findsOneWidget);
       expect(find.text('00:42:15'), findsOneWidget);
       expect(find.text('Average Speed'), findsOneWidget);
       expect(find.text('Heading'), findsOneWidget);
       expect(find.text('NW 315°'), findsOneWidget);
+
+      // Verify icon-only buttons (no text for HUD Flip or Landscape)
+      expect(find.text('HUD Flip'), findsNothing);
+      expect(find.text('Landscape'), findsNothing);
+      expect(find.byIcon(Icons.flip_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.stay_current_landscape_rounded), findsOneWidget);
+
+      // Tap HUD Flip icon
+      await tester.tap(find.byIcon(Icons.flip_rounded));
+      expect(hudToggled, isTrue);
+
+      // Tap Landscape icon
+      await tester.tap(find.byIcon(Icons.stay_current_landscape_rounded));
+      expect(orientationToggled, isTrue);
     });
 
     testWidgets(
-        'ActionBar toggles HUD button and triggers recording & orientation callbacks',
+        'ActionBar renders enlarged Start, Pause, and Reset actions',
         (tester) async {
-      bool hudToggled = false;
-      bool orientationToggled = false;
       bool tripToggled = false;
+      bool pauseToggled = false;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: ActionBar(
-              isHudMirrored: false,
-              onToggleHud: () => hudToggled = true,
-              isLandscape: false,
-              onToggleOrientation: () => orientationToggled = true,
-              isRecordingTrip: false,
+              isRecordingTrip: true,
               onToggleRecording: () => tripToggled = true,
+              isTripPaused: false,
+              onTogglePause: () => pauseToggled = true,
               onResetTrip: () {},
               theme: testTheme,
             ),
@@ -162,19 +184,19 @@ void main() {
         ),
       );
 
-      expect(find.text('HUD Flip'), findsOneWidget);
-      expect(find.text('Landscape'), findsOneWidget);
-      expect(find.text('Start Trip'), findsOneWidget);
+      expect(find.text('Stop Trip'), findsOneWidget);
+      expect(find.text('Pause'), findsOneWidget);
       expect(find.text('Reset Trip'), findsOneWidget);
 
-      await tester.tap(find.text('HUD Flip'));
-      expect(hudToggled, isTrue);
+      // Verify HUD flip & landscape are NOT in bottom action bar
+      expect(find.byIcon(Icons.flip_rounded), findsNothing);
+      expect(find.byIcon(Icons.stay_current_landscape_rounded), findsNothing);
 
-      await tester.tap(find.text('Landscape'));
-      expect(orientationToggled, isTrue);
-
-      await tester.tap(find.text('Start Trip'));
+      await tester.tap(find.text('Stop Trip'));
       expect(tripToggled, isTrue);
+
+      await tester.tap(find.text('Pause'));
+      expect(pauseToggled, isTrue);
     });
   });
 }

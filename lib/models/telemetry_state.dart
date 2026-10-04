@@ -14,6 +14,7 @@ class TelemetryState {
   final bool isHudMirrored;
   final int batteryPercent;
   final bool isRecordingTrip;
+  final bool isTripPaused;
   final DateTime? recordingStartTime;
   final double recordedTripDistanceKm;
   final int recordedTripSeconds;
@@ -35,6 +36,7 @@ class TelemetryState {
     this.isHudMirrored = false,
     this.batteryPercent = 100,
     this.isRecordingTrip = false,
+    this.isTripPaused = false,
     this.recordingStartTime,
     this.recordedTripDistanceKm = 0.0,
     this.recordedTripSeconds = 0,
@@ -57,6 +59,7 @@ class TelemetryState {
     bool? isHudMirrored,
     int? batteryPercent,
     bool? isRecordingTrip,
+    bool? isTripPaused,
     DateTime? recordingStartTime,
     double? recordedTripDistanceKm,
     int? recordedTripSeconds,
@@ -78,6 +81,7 @@ class TelemetryState {
       isHudMirrored: isHudMirrored ?? this.isHudMirrored,
       batteryPercent: batteryPercent ?? this.batteryPercent,
       isRecordingTrip: isRecordingTrip ?? this.isRecordingTrip,
+      isTripPaused: isTripPaused ?? this.isTripPaused,
       recordingStartTime: recordingStartTime ?? this.recordingStartTime,
       recordedTripDistanceKm:
           recordedTripDistanceKm ?? this.recordedTripDistanceKm,
