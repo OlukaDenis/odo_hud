@@ -234,6 +234,9 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
           isGpsLocked: update.isGpsLocked,
           recordedTripDistanceKm: UnitConverter.metersToKm(_recordedTripMeters),
           recordedTripMaxSpeedKmh: _recordedTripMaxSpeedKmh,
+          altitudeMeters: update.altitudeMeters,
+          latitude: update.latitude,
+          longitude: update.longitude,
         );
       },
       onError: (e) {

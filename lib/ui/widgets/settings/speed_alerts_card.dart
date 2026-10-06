@@ -39,7 +39,7 @@ class SpeedAlertsCard extends ConsumerWidget {
               ),
             ),
             title: Text(
-              'Speed Alert Thresholds',
+              'Speed Alerts',
               style: TextStyle(
                 color: theme.textColor,
                 fontWeight: FontWeight.w600,

@@ -5,6 +5,8 @@ import '../core/theme/hud_theme.dart';
 import '../data/database/isar_service.dart';
 import '../data/models/theme_config_record.dart';
 
+import 'speed_font_size_provider.dart';
+
 final themeConfigProvider =
     StateNotifierProvider<ThemeConfigNotifier, ThemeConfigRecord>((ref) {
   return ThemeConfigNotifier();
@@ -12,7 +14,8 @@ final themeConfigProvider =
 
 final hudThemeProvider = Provider<HudTheme>((ref) {
   final config = ref.watch(themeConfigProvider);
-  return HudTheme(config);
+  final fontScale = ref.watch(speedFontScaleProvider);
+  return HudTheme(config, speedFontScale: fontScale);
 });
 
 class ThemeConfigNotifier extends StateNotifier<ThemeConfigRecord> {

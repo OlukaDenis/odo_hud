@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../models/telemetry_state.dart';
+import 'compass/compass_card.dart';
 import 'hud_quick_actions.dart';
 import 'metric_card.dart';
 
@@ -113,11 +114,10 @@ class AuxiliaryGrid extends StatelessWidget {
                     icon: Icons.speed_outlined,
                     theme: theme,
                   ),
-                  MetricCard(
-                    label: 'Heading',
-                    value: heading,
-                    icon: Icons.explore_outlined,
+                  CompassCard(
+                    telemetry: telemetry,
                     theme: theme,
+                    isMetric: isMetric,
                   ),
                 ],
               );

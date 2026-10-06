@@ -4,8 +4,9 @@ import '../../data/models/theme_config_record.dart';
 
 class HudTheme {
   final ThemeConfigRecord config;
+  final double speedFontScale;
 
-  HudTheme(this.config);
+  HudTheme(this.config, {this.speedFontScale = 1.0});
 
   Color get backgroundColor => Color(config.backgroundColorValue);
   Color get speedNormal => Color(config.speedColorNormal);

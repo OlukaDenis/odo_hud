@@ -35,7 +35,8 @@ class SpeedDisplay extends StatelessWidget {
             // Calculate responsive font size if not explicitly provided
             final availableHeight = constraints.maxHeight;
             final calculatedSize = (availableHeight * 0.55).clamp(64.0, 220.0);
-            final fontSize = customFontSize ?? calculatedSize;
+            final baseSize = customFontSize ?? calculatedSize;
+            final fontSize = baseSize * theme.speedFontScale;
 
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,

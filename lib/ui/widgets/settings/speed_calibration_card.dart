@@ -35,7 +35,7 @@ class SpeedCalibrationCard extends ConsumerWidget {
               child: Icon(Icons.tune_rounded, color: theme.textColor, size: 20),
             ),
             title: Text(
-              'Speed Calibration & Offset',
+              'Speed Calibration',
               style: TextStyle(
                 color: theme.textColor,
                 fontWeight: FontWeight.w600,

@@ -66,7 +66,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'SPEED ALERT THRESHOLDS',
+                'SPEED ALERTS',
                 style: liveTheme
                     .getTelemetryTextStyle(
                       fontSize: 16,

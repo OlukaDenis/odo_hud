@@ -21,6 +21,9 @@ class TelemetryState {
   final double recordedTripDistanceKm;
   final int recordedTripSeconds;
   final double recordedTripMaxSpeedKmh;
+  final double altitudeMeters;
+  final double latitude;
+  final double longitude;
 
   const TelemetryState({
     this.currentSpeedKmh = 0.0,
@@ -45,6 +48,9 @@ class TelemetryState {
     this.recordedTripDistanceKm = 0.0,
     this.recordedTripSeconds = 0,
     this.recordedTripMaxSpeedKmh = 0.0,
+    this.altitudeMeters = 0.0,
+    this.latitude = 0.0,
+    this.longitude = 0.0,
   });
 
   TelemetryState copyWith({
@@ -70,6 +76,9 @@ class TelemetryState {
     double? recordedTripDistanceKm,
     int? recordedTripSeconds,
     double? recordedTripMaxSpeedKmh,
+    double? altitudeMeters,
+    double? latitude,
+    double? longitude,
   }) {
     return TelemetryState(
       currentSpeedKmh: currentSpeedKmh ?? this.currentSpeedKmh,
@@ -96,6 +105,9 @@ class TelemetryState {
       recordedTripSeconds: recordedTripSeconds ?? this.recordedTripSeconds,
       recordedTripMaxSpeedKmh:
           recordedTripMaxSpeedKmh ?? this.recordedTripMaxSpeedKmh,
+      altitudeMeters: altitudeMeters ?? this.altitudeMeters,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

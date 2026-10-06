@@ -12,6 +12,9 @@ class LocationUpdate {
   final double accuracyMeters;
   final bool isGpsLocked;
   final DateTime timestamp;
+  final double altitudeMeters;
+  final double latitude;
+  final double longitude;
 
   const LocationUpdate({
     required this.speedKmh,
@@ -20,6 +23,9 @@ class LocationUpdate {
     required this.accuracyMeters,
     required this.isGpsLocked,
     required this.timestamp,
+    this.altitudeMeters = 0.0,
+    this.latitude = 0.0,
+    this.longitude = 0.0,
   });
 }
 
@@ -116,6 +122,9 @@ class LocationService {
           accuracyMeters: accuracy,
           isGpsLocked: isGpsLocked,
           timestamp: position.timestamp,
+          altitudeMeters: position.altitude,
+          latitude: position.latitude,
+          longitude: position.longitude,
         );
       },
     );

@@ -58,7 +58,7 @@ class ColorCustomizationSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'SPEED DISPLAY COLORS',
+                'COLORS',
                 style: liveTheme
                     .getTelemetryTextStyle(
                       fontSize: 16,

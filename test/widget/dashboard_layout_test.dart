@@ -5,6 +5,7 @@ import 'package:odo_hud/data/models/theme_config_record.dart';
 import 'package:odo_hud/models/telemetry_state.dart';
 import 'package:odo_hud/ui/widgets/action_bar.dart';
 import 'package:odo_hud/ui/widgets/auxiliary_grid.dart';
+import 'package:odo_hud/ui/widgets/compass/compass_dial.dart';
 import 'package:odo_hud/ui/widgets/metric_card.dart';
 import 'package:odo_hud/ui/widgets/speed_display.dart';
 import 'package:odo_hud/ui/widgets/top_status_bar.dart';
@@ -145,7 +146,7 @@ void main() {
       expect(find.text('00:42:15'), findsOneWidget);
       expect(find.text('Average Speed'), findsOneWidget);
       expect(find.text('Heading'), findsOneWidget);
-      expect(find.text('NW 315°'), findsOneWidget);
+      expect(find.byType(CompassDial), findsOneWidget);
 
       // Verify icon-only buttons (no text for HUD Flip or Landscape)
       expect(find.text('HUD Flip'), findsNothing);

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/hud_theme.dart';
+import '../../../providers/speed_font_size_provider.dart';
 import '../../../providers/theme_provider.dart';
 import 'color_customization_sheet.dart';
 import 'font_selection_sheet.dart';
+import 'speed_font_size_sheet.dart';
 import 'theme_selection_sheet.dart';
 
 class AppearanceThemeCard extends ConsumerWidget {
@@ -14,6 +17,8 @@ class AppearanceThemeCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(hudThemeProvider);
     final config = ref.watch(themeConfigProvider);
+    final fontScale = ref.watch(speedFontScaleProvider);
+    final scaleNotifier = ref.read(speedFontScaleProvider.notifier);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,6 +142,103 @@ class AppearanceThemeCard extends ConsumerWidget {
               ),
               Divider(color: theme.dividerColor, height: 1),
 
+              // Speed Font Size Tile (Opens Bottom Sheet)
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.textColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.format_size_rounded,
+                    color: theme.textColor,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  'Speed Font Size',
+                  style: TextStyle(
+                    color: theme.textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                subtitle: Text(
+                  '${(fontScale * 100).round()}% scale (Tap to adjust)',
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 12),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: fontScale > SpeedFontScaleConfig.minScale
+                          ? () {
+                              HapticFeedback.selectionClick();
+                              scaleNotifier.decrease();
+                            }
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.remove_circle_outline_rounded,
+                          size: 18,
+                          color: fontScale > SpeedFontScaleConfig.minScale
+                              ? theme.textColor
+                              : theme.subtitleColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.speedNormal.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${(fontScale * 100).round()}%',
+                        style: TextStyle(
+                          color: theme.speedNormal,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: fontScale < SpeedFontScaleConfig.maxScale
+                          ? () {
+                              HapticFeedback.selectionClick();
+                              scaleNotifier.increase();
+                            }
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.add_circle_outline_rounded,
+                          size: 18,
+                          color: fontScale < SpeedFontScaleConfig.maxScale
+                              ? theme.textColor
+                              : theme.subtitleColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.subtitleColor,
+                      size: 20,
+                    ),
+                  ],
+                ),
+                onTap: () => SpeedFontSizeSheet.show(context),
+              ),
+              Divider(color: theme.dividerColor, height: 1),
+
               // Speed Display Colors Tile (Opens Bottom Sheet)
               ListTile(
                 leading: Container(
@@ -152,7 +254,7 @@ class AppearanceThemeCard extends ConsumerWidget {
                   ),
                 ),
                 title: Text(
-                  'Primary & Speed Display Colors',
+                  'Display Colors',
                   style: TextStyle(
                     color: theme.textColor,
                     fontWeight: FontWeight.w600,
