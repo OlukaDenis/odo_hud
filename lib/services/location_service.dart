@@ -35,22 +35,22 @@ class LocationService {
     if (!kIsWeb && Platform.isAndroid) {
       locationSettings = AndroidSettings(
         accuracy: LocationAccuracy.bestForNavigation,
-        distanceFilter: 1,
-        intervalDuration: const Duration(seconds: 1),
+        distanceFilter: 0,
+        intervalDuration: const Duration(milliseconds: 500),
         foregroundNotificationConfig: null, // Managed via FlutterForegroundTask
       );
     } else if (!kIsWeb && Platform.isIOS) {
       locationSettings = AppleSettings(
         accuracy: LocationAccuracy.bestForNavigation,
         activityType: ActivityType.automotiveNavigation,
-        distanceFilter: 1,
+        distanceFilter: 0,
         pauseLocationUpdatesAutomatically: false,
         showBackgroundLocationIndicator: true,
       );
     } else {
       locationSettings = const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 1,
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 0,
       );
     }
 
@@ -61,17 +61,18 @@ class LocationService {
         final rawHeading = position.heading;
 
         // GPS Lock condition: accuracy must be within acceptable boundary (<= 20m)
-        final isGpsLocked = accuracy <= AppConstants.maxAcceptableGpsAccuracyMeters && accuracy > 0;
+        final isGpsLocked =
+            accuracy <= AppConstants.maxAcceptableGpsAccuracyMeters && accuracy > 0;
 
-        // Stationary Noise Gate:
-        // If speed < 0.42 m/s (1.5 km/h) or GPS accuracy > 20m, clamp speed to 0.0
         double speedKmh = 0.0;
         double distanceDeltaMeters = 0.0;
 
+        // Authoritative GNSS Hardware Doppler speed:
+        // Hardware Doppler measures radio carrier wave frequency shift, which is
+        // strictly 0.0 when stationary and completely immune to coordinate drift/noise.
         if (isGpsLocked && rawSpeedMps >= AppConstants.minMovingSpeedMps) {
           speedKmh = UnitConverter.mpsToKmh(rawSpeedMps);
 
-          // Calculate distance delta using Haversine
           if (_lastValidPosition != null) {
             final distance = Geolocator.distanceBetween(
               _lastValidPosition!.latitude,
@@ -80,14 +81,24 @@ class LocationService {
               position.longitude,
             );
 
-            // Filter out unreasonable GPS teleports (> 150 m in 1 second = > 540 km/h)
-            if (distance < 150.0) {
+            final elapsedMs = position.timestamp
+                .difference(_lastValidPosition!.timestamp)
+                .inMilliseconds;
+
+            // Maximum realistic GPS jump threshold based on elapsed time (up to 150m/sec = 540 km/h)
+            final maxPlausibleDistance = elapsedMs > 0
+                ? (150.0 * (elapsedMs / 1000.0)).clamp(5.0, 150.0)
+                : 150.0;
+
+            if (distance < maxPlausibleDistance) {
               distanceDeltaMeters = distance;
             }
           }
+
           _lastValidPosition = position;
         } else if (isGpsLocked) {
-          // Stationary position fix
+          // Stationary position fix (stopped at a red light or resting on a table):
+          // Maintain position fix without accumulating phantom distance
           _lastValidPosition = position;
         }
 

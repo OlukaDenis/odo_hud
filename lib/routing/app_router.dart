@@ -5,6 +5,7 @@ import '../data/database/isar_service.dart';
 import '../services/permission_service.dart';
 import '../data/models/trip_record.dart';
 import '../ui/screens/dashboard_screen.dart';
+import '../ui/screens/fullscreen_dashboard_screen.dart';
 import '../ui/screens/onboarding_screen.dart';
 import '../ui/screens/permissions_screen.dart';
 import '../ui/screens/settings_screen.dart';
@@ -36,6 +37,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/dashboard',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/fullscreen-dashboard',
+        builder: (context, state) => const FullscreenDashboardScreen(),
       ),
       GoRoute(
         path: '/settings',

@@ -52,4 +52,6 @@ key.properties
 **/key.properties
 *.jks
 *.keystore
-
+.agents/
+.agent/
+.workspace/

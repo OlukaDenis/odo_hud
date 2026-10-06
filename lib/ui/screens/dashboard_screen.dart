@@ -3,16 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../data/models/trip_record.dart';
-import '../../models/telemetry_state.dart';
 import '../../providers/telemetry_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../widgets/action_bar.dart';
-import '../widgets/auxiliary_grid.dart';
-import '../widgets/speed_display.dart';
+import '../widgets/dashboard_landscape_layout.dart';
+import '../widgets/dashboard_portrait_layout.dart';
 import '../widgets/top_status_bar.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -26,6 +26,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    // Enable immersive fullscreen mode (hide system status bar & nav bar)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     // Keep screen awake during active rides
     WakelockPlus.enable();
   }
@@ -33,21 +35,42 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void dispose() {
     WakelockPlus.disable();
-    // Restore free device auto-orientation on exiting dashboard
+    // Restore normal system overlays and free device auto-orientation on exit
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
 
-  void _openSettings() {
-    context.push('/settings');
+  Future<void> _openSettings() async {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    await context.push('/settings');
+    if (mounted) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
-  void _openTripHistory() {
-    context.push('/history');
+  Future<void> _openFullscreen() async {
+    HapticFeedback.selectionClick();
+    await context.push('/fullscreen-dashboard');
+    if (mounted) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
-  void _openTripDetail(TripRecord trip) {
-    context.push('/history/detail', extra: trip);
+  Future<void> _openTripHistory() async {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    await context.push('/history');
+    if (mounted) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+  }
+
+  Future<void> _openTripDetail(TripRecord trip) async {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    await context.push('/history/detail', extra: trip);
+    if (mounted) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
   void _confirmResetTrip() {
@@ -59,8 +82,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor:
-            theme.isDarkMode ? const Color(0xFF161616) : Colors.white,
+        backgroundColor: theme.isDarkMode
+            ? const Color(0xFF161616)
+            : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: theme.cardBorderColor),
@@ -68,9 +92,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: Row(
           children: [
             Icon(
-              isRecording
-                  ? Icons.warning_amber_rounded
-                  : Icons.refresh_rounded,
+              isRecording ? Icons.warning_amber_rounded : Icons.refresh_rounded,
               color: isRecording ? AppColors.criticalRed : theme.speedNormal,
               size: 24,
             ),
@@ -105,8 +127,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  isRecording ? AppColors.criticalRed : theme.speedNormal,
+              backgroundColor: isRecording
+                  ? AppColors.criticalRed
+                  : theme.speedNormal,
               foregroundColor: isRecording ? Colors.white : Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -126,9 +149,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   duration: const Duration(seconds: 2),
                   content: Text(
-                    isRecording
-                        ? 'Ride discarded'
-                        : 'Trip meters reset to 0.0',
+                    isRecording ? 'Ride discarded' : 'Trip meters reset to 0.0',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -170,8 +191,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             duration: const Duration(seconds: 2),
             content: const Row(
               children: [
-                Icon(Icons.fiber_manual_record_rounded,
-                    color: Colors.redAccent, size: 16),
+                Icon(
+                  Icons.fiber_manual_record_rounded,
+                  color: Colors.redAccent,
+                  size: 16,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Trip recording active',
@@ -285,8 +309,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _buildModalStat('DISTANCE', dist,
-                        highlight: true, theme: theme),
+                    child: _buildModalStat(
+                      'DISTANCE',
+                      dist,
+                      highlight: true,
+                      theme: theme,
+                    ),
                   ),
                   Expanded(
                     child: _buildModalStat('DURATION', duration, theme: theme),
@@ -348,8 +376,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildModalStat(String label, String value,
-      {bool highlight = false, required HudTheme theme}) {
+  Widget _buildModalStat(
+    String label,
+    String value, {
+    bool highlight = false,
+    required HudTheme theme,
+  }) {
     return Column(
       children: [
         Text(
@@ -379,9 +411,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void _toggleOrientation(bool isCurrentlyLandscape) {
     HapticFeedback.selectionClick();
     if (isCurrentlyLandscape) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-      ]);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     } else {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -428,6 +458,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     theme: theme,
                     onOpenSettings: _openSettings,
                     onOpenTripHistory: _openTripHistory,
+                    onOpenFullscreen: _openFullscreen,
                     isRecordingTrip: telemetry.isRecordingTrip,
                     isTripPaused: telemetry.isTripPaused,
                     recordedTripSeconds: telemetry.recordedTripSeconds,
@@ -438,22 +469,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ref.read(telemetryProvider.notifier).toggleHudMirror(),
                     onToggleOrientation: () => _toggleOrientation(isLandscape),
                   ),
-
-                  // Responsive Body
+                  const SizedBox(height: 8),
                   Expanded(
                     child: isLandscape
-                        ? _buildLandscapeLayout(
-                            telemetry,
-                            theme,
-                            isMetric,
+                        ? DashboardLandscapeLayout(
+                            telemetry: telemetry,
+                            theme: theme,
+                            isMetric: isMetric,
                             isLandscape: isLandscape,
                             actionBar: actionBar,
+                            onToggleHud: () => ref
+                                .read(telemetryProvider.notifier)
+                                .toggleHudMirror(),
+                            onToggleOrientation: () =>
+                                _toggleOrientation(isLandscape),
                           )
-                        : _buildPortraitLayout(
-                            telemetry,
-                            theme,
-                            isMetric,
+                        : DashboardPortraitLayout(
+                            telemetry: telemetry,
+                            theme: theme,
+                            isMetric: isMetric,
                             isLandscape: isLandscape,
+                            onToggleHud: () => ref
+                                .read(telemetryProvider.notifier)
+                                .toggleHudMirror(),
+                            onToggleOrientation: () =>
+                                _toggleOrientation(isLandscape),
                           ),
                   ),
 
@@ -465,94 +505,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildLandscapeLayout(
-    TelemetryState telemetry,
-    HudTheme theme,
-    bool isMetric, {
-    required bool isLandscape,
-    required Widget actionBar,
-  }) {
-    final currentSpeed =
-        isMetric ? telemetry.currentSpeedKmh : telemetry.currentSpeedMph;
-
-    return Row(
-      children: [
-        // Left 55%: Full-height Speed Numeral (completely uninterrupted)
-        Expanded(
-          flex: 11,
-          child: SpeedDisplay(
-            currentSpeed: currentSpeed,
-            speedKmh: telemetry.currentSpeedKmh,
-            isMetric: isMetric,
-            theme: theme,
-          ),
-        ),
-
-        // Right 45%: 2x2 Auxiliary Grid + Action Bar (matching exact width of the grid)
-        Expanded(
-          flex: 9,
-          child: Column(
-            children: [
-              Expanded(
-                child: AuxiliaryGrid(
-                  telemetry: telemetry,
-                  theme: theme,
-                  isMetric: isMetric,
-                  isHudMirrored: telemetry.isHudMirrored,
-                  onToggleHud: () =>
-                      ref.read(telemetryProvider.notifier).toggleHudMirror(),
-                  isLandscape: isLandscape,
-                  onToggleOrientation: () => _toggleOrientation(isLandscape),
-                ),
-              ),
-              actionBar,
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPortraitLayout(
-    TelemetryState telemetry,
-    HudTheme theme,
-    bool isMetric, {
-    required bool isLandscape,
-  }) {
-    final currentSpeed =
-        isMetric ? telemetry.currentSpeedKmh : telemetry.currentSpeedMph;
-
-    return Column(
-      children: [
-        // Upper 60%: Dominant Speed Numeral
-        Expanded(
-          flex: 6,
-          child: SpeedDisplay(
-            currentSpeed: currentSpeed,
-            speedKmh: telemetry.currentSpeedKmh,
-            isMetric: isMetric,
-            theme: theme,
-          ),
-        ),
-
-        // Lower 40%: Compact 2x2 Auxiliary Grid with HUD & orientation actions
-        Expanded(
-          flex: 4,
-          child: AuxiliaryGrid(
-            telemetry: telemetry,
-            theme: theme,
-            isMetric: isMetric,
-            isHudMirrored: telemetry.isHudMirrored,
-            onToggleHud: () =>
-                ref.read(telemetryProvider.notifier).toggleHudMirror(),
-            isLandscape: isLandscape,
-            onToggleOrientation: () => _toggleOrientation(isLandscape),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -19,63 +19,71 @@ class SpeedDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final speedColor = theme.getSpeedColor(speedKmh);
-    final speedText = currentSpeed.toStringAsFixed(0);
     final unitText = isMetric ? 'KM / H' : 'MPH';
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate responsive font size if not explicitly provided
-        final availableHeight = constraints.maxHeight;
-        final calculatedSize = (availableHeight * 0.55).clamp(64.0, 220.0);
-        final fontSize = customFontSize ?? calculatedSize;
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: currentSpeed, end: currentSpeed),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedSpeed, child) {
+        final speedColor = theme.getSpeedColor(speedKmh);
+        final speedText = animatedSpeed.round().toString();
 
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Speed Numeral
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                speedText,
-                style: theme.getSpeedTextStyle(
-                  fontSize: fontSize,
-                  color: speedColor,
-                ).copyWith(
-                  shadows: [
-                    Shadow(
-                      color: speedColor.withValues(alpha: 0.35),
-                      blurRadius: 16,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate responsive font size if not explicitly provided
+            final availableHeight = constraints.maxHeight;
+            final calculatedSize = (availableHeight * 0.55).clamp(64.0, 220.0);
+            final fontSize = customFontSize ?? calculatedSize;
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Speed Numeral
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    speedText,
+                    style: theme.getSpeedTextStyle(
+                      fontSize: fontSize,
+                      color: speedColor,
+                    ).copyWith(
+                      shadows: [
+                        Shadow(
+                          color: speedColor.withValues(alpha: 0.35),
+                          blurRadius: 16,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // Speed Unit Label
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              decoration: BoxDecoration(
-                color: theme.cardBackgroundColor.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: theme.cardBorderColor,
-                  width: 1,
+                // Speed Unit Label
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.cardBackgroundColor.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: theme.cardBorderColor,
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    unitText,
+                    style: theme.getTelemetryTextStyle(
+                      fontSize: 16,
+                      color: theme.cardLabelColor,
+                      fontWeight: FontWeight.bold,
+                    ).copyWith(
+                      letterSpacing: 4.0,
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(
-                unitText,
-                style: theme.getTelemetryTextStyle(
-                  fontSize: 16,
-                  color: theme.cardLabelColor,
-                  fontWeight: FontWeight.bold,
-                ).copyWith(
-                  letterSpacing: 4.0,
-                ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
       },
     );

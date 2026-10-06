@@ -14,6 +14,7 @@ class TopStatusBar extends StatefulWidget {
   final HudTheme theme;
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenTripHistory;
+  final VoidCallback? onOpenFullscreen;
   final bool isRecordingTrip;
   final bool isTripPaused;
   final int recordedTripSeconds;
@@ -31,6 +32,7 @@ class TopStatusBar extends StatefulWidget {
     required this.theme,
     required this.onOpenSettings,
     required this.onOpenTripHistory,
+    this.onOpenFullscreen,
     this.isRecordingTrip = false,
     this.isTripPaused = false,
     this.recordedTripSeconds = 0,
@@ -75,11 +77,11 @@ class _TopStatusBarState extends State<TopStatusBar>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: widget.theme.cardBackgroundColor,
+        color: widget.theme.backgroundColor,
         border: Border(
           bottom: BorderSide(
-            color: widget.theme.cardBorderColor,
-            width: 1.2,
+            color: widget.theme.cardBorderColor.withValues(alpha: 0.2),
+            width: 1.0,
           ),
         ),
       ),
@@ -108,6 +110,14 @@ class _TopStatusBarState extends State<TopStatusBar>
               theme: widget.theme,
               buttonWidth: 44,
               buttonHeight: 44,
+            ),
+            const SizedBox(width: 8),
+          ],
+          if (widget.onOpenFullscreen != null) ...[
+            _buildToolbarButton(
+              icon: Icons.fullscreen_rounded,
+              tooltip: 'Fullscreen HUD',
+              onTap: widget.onOpenFullscreen!,
             ),
             const SizedBox(width: 8),
           ],
