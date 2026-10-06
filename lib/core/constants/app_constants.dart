@@ -2,8 +2,8 @@ class AppConstants {
   AppConstants._();
 
   // GPS & Telemetry Constants
-  static const double minMovingSpeedMps = 0.416667; // 1.5 km/h in m/s (filters stationary GPS drift)
-  static const double minMovingSpeedKmh = 1.5;
+  static const double minMovingSpeedMps = 0.222222; // 0.8 km/h in m/s (enables instant takeoff detection)
+  static const double minMovingSpeedKmh = 0.8;
   static const double maxAcceptableGpsAccuracyMeters = 20.0;
   static const int gpsTimeoutSeconds = 3;
   static const Duration persistenceFlushInterval = Duration(seconds: 5);

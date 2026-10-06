@@ -36,7 +36,7 @@ class LocationService {
       locationSettings = AndroidSettings(
         accuracy: LocationAccuracy.bestForNavigation,
         distanceFilter: 0,
-        intervalDuration: const Duration(milliseconds: 500),
+        intervalDuration: const Duration(milliseconds: 250),
         foregroundNotificationConfig: null, // Managed via FlutterForegroundTask
       );
     } else if (!kIsWeb && Platform.isIOS) {
@@ -61,17 +61,13 @@ class LocationService {
         final rawHeading = position.heading;
 
         // GPS Lock condition: accuracy must be within acceptable boundary (<= 20m)
-        final isGpsLocked =
-            accuracy <= AppConstants.maxAcceptableGpsAccuracyMeters && accuracy > 0;
+        final isGpsLocked = accuracy <= AppConstants.maxAcceptableGpsAccuracyMeters && accuracy > 0;
 
         double speedKmh = 0.0;
         double distanceDeltaMeters = 0.0;
 
-        // Authoritative GNSS Hardware Doppler speed:
-        // Hardware Doppler measures radio carrier wave frequency shift, which is
-        // strictly 0.0 when stationary and completely immune to coordinate drift/noise.
-        if (isGpsLocked && rawSpeedMps >= AppConstants.minMovingSpeedMps) {
-          speedKmh = UnitConverter.mpsToKmh(rawSpeedMps);
+        if (isGpsLocked) {
+          double effectiveSpeedMps = rawSpeedMps;
 
           if (_lastValidPosition != null) {
             final distance = Geolocator.distanceBetween(
@@ -85,20 +81,31 @@ class LocationService {
                 .difference(_lastValidPosition!.timestamp)
                 .inMilliseconds;
 
-            // Maximum realistic GPS jump threshold based on elapsed time (up to 150m/sec = 540 km/h)
+            // Maximum realistic GPS jump threshold based on elapsed time (up to 150m/sec)
             final maxPlausibleDistance = elapsedMs > 0
                 ? (150.0 * (elapsedMs / 1000.0)).clamp(5.0, 150.0)
                 : 150.0;
 
             if (distance < maxPlausibleDistance) {
               distanceDeltaMeters = distance;
+
+              // Takeoff / Acceleration Assist:
+              // If Doppler speed is lagging (< min threshold) during rapid vehicle takeoff,
+              // use time-differentiated distance delta to eliminate initial hesitation
+              if (effectiveSpeedMps < AppConstants.minMovingSpeedMps && elapsedMs >= 200) {
+                final calculatedSpeedMps = distance / (elapsedMs / 1000.0);
+                if (calculatedSpeedMps >= AppConstants.minMovingSpeedMps && calculatedSpeedMps < 70.0) {
+                  effectiveSpeedMps = calculatedSpeedMps;
+                }
+              }
             }
           }
 
-          _lastValidPosition = position;
-        } else if (isGpsLocked) {
-          // Stationary position fix (stopped at a red light or resting on a table):
-          // Maintain position fix without accumulating phantom distance
+          // Stationary Noise Gate: clamp to 0 if below min moving speed
+          if (effectiveSpeedMps >= AppConstants.minMovingSpeedMps) {
+            speedKmh = UnitConverter.mpsToKmh(effectiveSpeedMps);
+          }
+
           _lastValidPosition = position;
         }
 
