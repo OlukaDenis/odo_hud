@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/hud_theme.dart';
 import '../../../providers/theme_provider.dart';
 
@@ -59,193 +60,144 @@ class ThemeSelectionSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'THEME APPEARANCE',
+                'Theme',
                 style: liveTheme
                     .getTelemetryTextStyle(
                       fontSize: 16,
-                      color: liveTheme.speedNormal,
+                      color: liveTheme.textColor,
                       fontWeight: FontWeight.bold,
                     )
-                    .copyWith(letterSpacing: 0.8),
+                    .copyWith(letterSpacing: 0.5),
               ),
               IconButton(
                 icon: Icon(Icons.close_rounded, color: liveTheme.subtitleColor),
+                visualDensity: VisualDensity.compact,
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
-          Text(
-            'Select your preferred display theme for cockpit telemetry',
-            style: TextStyle(
-              fontSize: 12,
-              color: liveTheme.subtitleColor,
-            ),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Option 1: Dark Mode (AMOLED)
-          _buildThemeCard(
-            title: 'Dark (AMOLED)',
-            subtitle: 'Pitch black background with high-contrast surfaces. Ideal for HUD reflection & night driving.',
-            icon: Icons.dark_mode_rounded,
-            isSelected: isDark,
-            previewBgColor: const Color(0xFF000000),
-            previewCardColor: const Color(0xFF1E2026),
-            previewBorderColor: const Color(0xFF353945),
-            previewTextColor: Colors.white,
-            theme: liveTheme,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              notifier.setThemeMode(isDark: true);
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Option 2: Light Mode
-          _buildThemeCard(
-            title: 'Light Mode',
-            subtitle: 'Crisp light background with elevated white cards. Superior readability in direct sunlight.',
-            icon: Icons.light_mode_rounded,
-            isSelected: !isDark,
-            previewBgColor: const Color(0xFFF5F5F7),
-            previewCardColor: const Color(0xFFFFFFFF),
-            previewBorderColor: const Color(0xFFE0E0E0),
-            previewTextColor: const Color(0xFF111111),
-            theme: liveTheme,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              notifier.setThemeMode(isDark: false);
-            },
+          // Selectable Chips
+          Row(
+            children: [
+              _buildChip(
+                label: 'Dark',
+                sublabel: 'AMOLED',
+                icon: Icons.dark_mode_rounded,
+                isSelected: isDark,
+                theme: liveTheme,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  notifier.setThemeMode(isDark: true);
+                },
+              ),
+              const SizedBox(width: 12),
+              _buildChip(
+                label: 'Light',
+                sublabel: 'Standard',
+                icon: Icons.light_mode_rounded,
+                isSelected: !isDark,
+                theme: liveTheme,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  notifier.setThemeMode(isDark: false);
+                },
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildThemeCard({
-    required String title,
-    required String subtitle,
+  Widget _buildChip({
+    required String label,
+    required String sublabel,
     required IconData icon,
     required bool isSelected,
-    required Color previewBgColor,
-    required Color previewCardColor,
-    required Color previewBorderColor,
-    required Color previewTextColor,
     required HudTheme theme,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? theme.speedNormal.withValues(alpha: 0.12)
-                : theme.cardBackgroundColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isSelected ? theme.speedNormal : theme.cardBorderColor,
-              width: isSelected ? 2 : 1.2,
-            ),
-          ),
-          child: Row(
-            children: [
-              // Mini Cockpit Preview Box
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: previewBgColor,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: previewBorderColor, width: 1.5),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: previewCardColor,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: previewBorderColor, width: 1),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 16,
-                      color: isSelected ? theme.speedNormal : previewTextColor,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
+    final isDarkAccent =
+        ThemeData.estimateBrightnessForColor(theme.speedNormal) ==
+        Brightness.dark;
+    final onAccent = isDarkAccent ? Colors.white : const Color(0xFF111111);
+    final onAccentSub =
+        isDarkAccent ? Colors.white70 : const Color(0x99111111);
 
-              // Title and details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    final unselectedBg = theme.isDarkMode
+        ? const Color(0xFF262830)
+        : const Color(0xFFEFF1F5);
+    final unselectedBorder = theme.isDarkMode
+        ? const Color(0xFF353945)
+        : const Color(0xFFD6DAE1);
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? theme.speedNormal : unselectedBg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isSelected ? theme.speedNormal : unselectedBorder,
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? theme.speedNormal : theme.textColor,
-                          ),
-                        ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: theme.speedNormal,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'ACTIVE',
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: theme.subtitleColor,
-                        height: 1.3,
+                    if (isSelected) ...[
+                      Icon(
+                        Icons.check_rounded,
+                        size: 16,
+                        color: onAccent,
                       ),
+                      const SizedBox(width: 6),
+                    ] else ...[
+                      Icon(
+                        icon,
+                        size: 16,
+                        color: theme.subtitleColor,
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? onAccent : theme.textColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-              ),
-
-              // Radio / Check Indicator
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected ? theme.speedNormal : Colors.transparent,
-                  border: Border.all(
-                    color: isSelected ? theme.speedNormal : theme.subtitleColor,
-                    width: 2,
+                const SizedBox(height: 3),
+                Text(
+                  sublabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isSelected ? onAccentSub : theme.subtitleColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                child: isSelected
-                    ? const Icon(Icons.check, size: 16, color: Colors.black)
-                    : null,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

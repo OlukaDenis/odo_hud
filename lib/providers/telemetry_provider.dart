@@ -5,10 +5,12 @@ import '../core/utils/unit_converter.dart';
 import '../data/database/isar_service.dart';
 import '../data/models/telemetry_record.dart';
 import '../data/models/trip_record.dart';
+import '../models/speed_calibration_config.dart';
 import '../models/telemetry_state.dart';
 import '../services/foreground_service.dart';
 import '../services/location_service.dart';
 import '../services/sensor_service.dart';
+import 'speed_calibration_provider.dart';
 
 final isarServiceProvider = Provider<IsarService>((ref) {
   return IsarService.instance;
@@ -17,7 +19,16 @@ final isarServiceProvider = Provider<IsarService>((ref) {
 final telemetryProvider =
     StateNotifierProvider<TelemetryNotifier, TelemetryState>((ref) {
   final isar = ref.watch(isarServiceProvider);
-  return TelemetryNotifier(isar);
+  final notifier = TelemetryNotifier(isar);
+
+  final initialCalib = ref.read(speedCalibrationProvider);
+  notifier.updateCalibration(initialCalib);
+
+  ref.listen<SpeedCalibrationConfig>(speedCalibrationProvider, (prev, next) {
+    notifier.updateCalibration(next);
+  });
+
+  return notifier;
 });
 
 class TelemetryNotifier extends StateNotifier<TelemetryState> {
@@ -47,8 +58,21 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
   double _recordedTripMaxSpeedKmh = 0.0;
   final List<TripEvent> _tripEvents = [];
 
+  SpeedCalibrationConfig _calibration = SpeedCalibrationConfig.gpsTrue;
+
   TelemetryNotifier(this._isar) : super(const TelemetryState()) {
     _initialize();
+  }
+
+  void updateCalibration(SpeedCalibrationConfig config) {
+    _calibration = config;
+    final displayKmh = _calibration.apply(state.currentSpeedKmh);
+    final displayMph = UnitConverter.kmhToMph(displayKmh);
+    state = state.copyWith(
+      displaySpeedKmh: displayKmh,
+      displaySpeedMph: displayMph,
+    );
+    _updateForegroundNotification();
   }
 
   Future<void> _initialize() async {
@@ -137,6 +161,8 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
             isGpsLocked: false,
             currentSpeedKmh: 0.0,
             currentSpeedMph: 0.0,
+            displaySpeedKmh: 0.0,
+            displaySpeedMph: 0.0,
           );
           _isMoving = false;
         }
@@ -152,6 +178,8 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
         final speedKmh = update.speedKmh;
         final speedMph = UnitConverter.kmhToMph(speedKmh);
+        final displayKmh = _calibration.apply(speedKmh);
+        final displayMph = UnitConverter.kmhToMph(displayKmh);
 
         _isMoving = speedKmh >= AppConstants.minMovingSpeedKmh;
 
@@ -193,6 +221,8 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
         state = state.copyWith(
           currentSpeedKmh: speedKmh,
           currentSpeedMph: speedMph,
+          displaySpeedKmh: displayKmh,
+          displaySpeedMph: displayMph,
           tripDistanceKm: tripKm,
           tripDistanceMiles: tripMiles,
           odometerKm: odoKm,
@@ -241,7 +271,7 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
   void _updateForegroundNotification() {
     ForegroundServiceManager.instance.updateNotification(
-      speedKmh: state.currentSpeedKmh,
+      speedKmh: state.displaySpeedKmh,
       tripKm: state.tripDistanceKm,
       timeFormatted: UnitConverter.formatMovingTime(state.movingTimeSeconds),
       isMetric: true,

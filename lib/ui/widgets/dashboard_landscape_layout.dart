@@ -27,8 +27,8 @@ class DashboardLandscapeLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentSpeed = isMetric
-        ? telemetry.currentSpeedKmh
-        : telemetry.currentSpeedMph;
+        ? telemetry.displaySpeedKmh
+        : telemetry.displaySpeedMph;
 
     return Row(
       children: [
@@ -37,7 +37,7 @@ class DashboardLandscapeLayout extends StatelessWidget {
           flex: 11,
           child: SpeedDisplay(
             currentSpeed: currentSpeed,
-            speedKmh: telemetry.currentSpeedKmh,
+            speedKmh: telemetry.displaySpeedKmh,
             isMetric: isMetric,
             theme: theme,
           ),

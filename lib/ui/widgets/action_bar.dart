@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
 
@@ -41,14 +42,11 @@ class ActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.cardBackgroundColor,
+        color: theme.backgroundColor,
         border: Border(
-          top: BorderSide(
-            color: theme.cardBorderColor,
-            width: 1.2,
-          ),
+          top: BorderSide(color: theme.backgroundColor, width: 1.2),
         ),
       ),
       child: SafeArea(
@@ -58,18 +56,12 @@ class ActionBar extends StatelessWidget {
           child: Row(
             children: [
               // 1. Pause / Resume Button (Icon only)
-              SizedBox(
-                width: 52,
-                height: 48,
-                child: _buildPauseResumeButton(),
-              ),
-              const SizedBox(width: 8),
+              SizedBox(width: 52, height: 48, child: _buildPauseResumeButton()),
+              const SizedBox(width: 14),
 
               // 2. Start / Stop Button ('Start' / 'Stop' - Solid in Middle)
-              Expanded(
-                child: _buildStartStopButton(),
-              ),
-              const SizedBox(width: 8),
+              Expanded(child: _buildStartStopButton()),
+              const SizedBox(width: 14),
 
               // 3. Reset Button (Short-tap confirmation)
               SizedBox(
@@ -94,8 +86,8 @@ class ActionBar extends StatelessWidget {
     final solidFg = active
         ? Colors.white
         : (ThemeData.estimateBrightnessForColor(solidBg) == Brightness.dark
-            ? Colors.white
-            : Colors.black);
+              ? Colors.white
+              : Colors.black);
 
     return Material(
       color: Colors.transparent,
@@ -127,9 +119,7 @@ class ActionBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      active
-                          ? Icons.stop_rounded
-                          : Icons.play_arrow_rounded,
+                      active ? Icons.stop_rounded : Icons.play_arrow_rounded,
                       size: 22,
                       color: solidFg,
                     ),
@@ -199,18 +189,9 @@ class ActionBar extends StatelessWidget {
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: border,
-                width: canPause ? 1.5 : 1.0,
-              ),
+              border: Border.all(color: border, width: canPause ? 1.5 : 1.0),
             ),
-            child: Center(
-              child: Icon(
-                icon,
-                size: 22,
-                color: fg,
-              ),
-            ),
+            child: Center(child: Icon(icon, size: 22, color: fg)),
           ),
         ),
       ),
@@ -243,7 +224,9 @@ class _ResetButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Tooltip(
-        message: isRecordingTrip ? 'Discard Ride & Reset' : 'Reset Trip Counters',
+        message: isRecordingTrip
+            ? 'Discard Ride & Reset'
+            : 'Reset Trip Counters',
         child: InkWell(
           onTap: () {
             HapticFeedback.mediumImpact();
@@ -255,17 +238,10 @@ class _ResetButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: border,
-                width: 1.0,
-              ),
+              border: Border.all(color: border, width: 1.0),
             ),
             child: Center(
-              child: Icon(
-                Icons.refresh_rounded,
-                size: 22,
-                color: fg,
-              ),
+              child: Icon(Icons.refresh_rounded, size: 22, color: fg),
             ),
           ),
         ),
@@ -273,4 +249,3 @@ class _ResetButton extends StatelessWidget {
     );
   }
 }
-

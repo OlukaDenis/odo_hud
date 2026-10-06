@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/hud_theme.dart';
+import '../../../providers/speed_calibration_provider.dart';
 import '../../../providers/theme_provider.dart';
-import '../../screens/permissions_screen.dart';
+import 'speed_calibration_sheet.dart';
 
-class PermissionsNavCard extends ConsumerWidget {
-  const PermissionsNavCard({super.key});
+class SpeedCalibrationCard extends ConsumerWidget {
+  const SpeedCalibrationCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(hudThemeProvider);
+    final calibration = ref.watch(speedCalibrationProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('PERMISSIONS & SYSTEM TUNING', theme),
+        _buildSectionHeader('SPEEDOMETER CALIBRATION', theme),
         Material(
           color: theme.cardBackgroundColor,
           clipBehavior: Clip.antiAlias,
@@ -32,14 +32,10 @@ class PermissionsNavCard extends ConsumerWidget {
                 color: theme.textColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.admin_panel_settings_rounded,
-                color: theme.textColor,
-                size: 20,
-              ),
+              child: Icon(Icons.tune_rounded, color: theme.textColor, size: 20),
             ),
             title: Text(
-              'Hardware & Background Access',
+              'Speed Calibration & Offset',
               style: TextStyle(
                 color: theme.textColor,
                 fontWeight: FontWeight.w600,
@@ -47,7 +43,9 @@ class PermissionsNavCard extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              'GPS Location, HUD notification & OEM battery guide',
+              calibration.isEnabled
+                  ? 'Offset: ${calibration.summaryText} (Tire / Dash Match)'
+                  : 'Disabled • Using True GPS Ground Speed',
               style: TextStyle(color: theme.subtitleColor, fontSize: 12),
             ),
             trailing: Row(
@@ -59,32 +57,31 @@ class PermissionsNavCard extends ConsumerWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.speedNormal.withValues(alpha: 0.15),
+                    color: calibration.isEnabled
+                        ? theme.primaryColor.withValues(alpha: 0.15)
+                        : (theme.isDarkMode ? Colors.white10 : Colors.black12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    'Manage',
+                    calibration.isEnabled ? calibration.summaryText : 'OFF',
                     style: TextStyle(
-                      color: theme.speedNormal,
+                      color: calibration.isEnabled
+                          ? theme.primaryColor
+                          : theme.subtitleColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 11,
+                      fontSize: 12,
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Icon(Icons.chevron_right_rounded, color: theme.subtitleColor),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: theme.subtitleColor,
+                  size: 20,
+                ),
               ],
             ),
-            onTap: () {
-              HapticFeedback.selectionClick();
-              try {
-                context.push('/permissions');
-              } catch (_) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const PermissionsScreen()),
-                );
-              }
-            },
+            onTap: () => SpeedCalibrationSheet.show(context),
           ),
         ),
       ],

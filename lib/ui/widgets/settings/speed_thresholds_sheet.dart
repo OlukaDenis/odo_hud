@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/hud_theme.dart';
 import '../../../providers/theme_provider.dart';
 
@@ -69,7 +70,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
                 style: liveTheme
                     .getTelemetryTextStyle(
                       fontSize: 16,
-                      color: liveTheme.speedNormal,
+                      color: liveTheme.textColor,
                       fontWeight: FontWeight.bold,
                     )
                     .copyWith(letterSpacing: 0.8),
@@ -82,10 +83,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
           ),
           Text(
             'Visual speed alerts change color dynamically at these boundaries',
-            style: TextStyle(
-              fontSize: 12,
-              color: liveTheme.subtitleColor,
-            ),
+            style: TextStyle(fontSize: 12, color: liveTheme.subtitleColor),
           ),
           const SizedBox(height: 18),
 
@@ -93,7 +91,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
           Row(
             children: [
               _buildPresetButton(
-                label: '🏙️ City',
+                label: 'City',
                 onTap: () {
                   HapticFeedback.selectionClick();
                   notifier.updateSpeedThresholds(
@@ -105,7 +103,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               _buildPresetButton(
-                label: '🛣️ Highway',
+                label: 'Highway',
                 onTap: () {
                   HapticFeedback.selectionClick();
                   notifier.updateSpeedThresholds(
@@ -117,7 +115,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               _buildPresetButton(
-                label: '🏁 Autobahn',
+                label: 'Autobahn',
                 onTap: () {
                   HapticFeedback.selectionClick();
                   notifier.updateSpeedThresholds(
@@ -159,8 +157,9 @@ class SpeedThresholdsSheet extends ConsumerWidget {
             max: maxWarn,
             divisions: (maxWarn - minWarn).toInt(),
             activeColor: liveTheme.speedWarning,
-            inactiveColor:
-                liveTheme.isDarkMode ? Colors.white24 : Colors.black12,
+            inactiveColor: liveTheme.isDarkMode
+                ? Colors.white24
+                : Colors.black12,
             onChanged: (val) =>
                 notifier.updateSpeedThresholds(warningKmh: val.roundToDouble()),
           ),
@@ -194,10 +193,12 @@ class SpeedThresholdsSheet extends ConsumerWidget {
             max: maxCrit,
             divisions: (maxCrit - minCrit).toInt(),
             activeColor: liveTheme.speedCritical,
-            inactiveColor:
-                liveTheme.isDarkMode ? Colors.white24 : Colors.black12,
-            onChanged: (val) =>
-                notifier.updateSpeedThresholds(criticalKmh: val.roundToDouble()),
+            inactiveColor: liveTheme.isDarkMode
+                ? Colors.white24
+                : Colors.black12,
+            onChanged: (val) => notifier.updateSpeedThresholds(
+              criticalKmh: val.roundToDouble(),
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -214,8 +215,10 @@ class SpeedThresholdsSheet extends ConsumerWidget {
                 ),
               ),
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Save & Apply',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Save & Apply',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],
@@ -233,9 +236,7 @@ class SpeedThresholdsSheet extends ConsumerWidget {
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 8),
           side: BorderSide(color: theme.cardBorderColor),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: onTap,
         child: Text(

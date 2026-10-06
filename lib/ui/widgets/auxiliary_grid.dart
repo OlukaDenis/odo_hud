@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../models/telemetry_state.dart';
@@ -44,8 +45,9 @@ class AuxiliaryGrid extends StatelessWidget {
         : UnitConverter.kmhToMph(telemetry.averageSpeedKmh).toStringAsFixed(0);
     final avgSpeedUnit = isMetric ? 'KM/H' : 'MPH';
 
-    final movingTime =
-        UnitConverter.formatMovingTime(telemetry.movingTimeSeconds);
+    final movingTime = UnitConverter.formatMovingTime(
+      telemetry.movingTimeSeconds,
+    );
     final heading =
         '${telemetry.cardinalDirection} ${telemetry.headingDegrees.toStringAsFixed(0)}°';
 
@@ -77,14 +79,16 @@ class AuxiliaryGrid extends StatelessWidget {
             builder: (context, constraints) {
               final itemWidth = (constraints.maxWidth - 24) / 2;
               final itemHeight = (constraints.maxHeight - 24) / 2;
-              final ratio = (itemWidth / itemHeight.clamp(20.0, 500.0))
-                  .clamp(0.4, 3.5);
+              final ratio = (itemWidth / itemHeight.clamp(20.0, 500.0)).clamp(
+                0.4,
+                3.5,
+              );
 
               return GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
+                padding: const EdgeInsets.fromLTRB(14, 2, 14, 8),
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
                 childAspectRatio: ratio,

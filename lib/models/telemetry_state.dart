@@ -1,6 +1,8 @@
 class TelemetryState {
   final double currentSpeedKmh;
   final double currentSpeedMph;
+  final double displaySpeedKmh;
+  final double displaySpeedMph;
   final double tripDistanceKm;
   final double tripDistanceMiles;
   final double odometerKm;
@@ -23,6 +25,8 @@ class TelemetryState {
   const TelemetryState({
     this.currentSpeedKmh = 0.0,
     this.currentSpeedMph = 0.0,
+    this.displaySpeedKmh = 0.0,
+    this.displaySpeedMph = 0.0,
     this.tripDistanceKm = 0.0,
     this.tripDistanceMiles = 0.0,
     this.odometerKm = 0.0,
@@ -46,6 +50,8 @@ class TelemetryState {
   TelemetryState copyWith({
     double? currentSpeedKmh,
     double? currentSpeedMph,
+    double? displaySpeedKmh,
+    double? displaySpeedMph,
     double? tripDistanceKm,
     double? tripDistanceMiles,
     double? odometerKm,
@@ -68,6 +74,8 @@ class TelemetryState {
     return TelemetryState(
       currentSpeedKmh: currentSpeedKmh ?? this.currentSpeedKmh,
       currentSpeedMph: currentSpeedMph ?? this.currentSpeedMph,
+      displaySpeedKmh: displaySpeedKmh ?? this.displaySpeedKmh,
+      displaySpeedMph: displaySpeedMph ?? this.displaySpeedMph,
       tripDistanceKm: tripDistanceKm ?? this.tripDistanceKm,
       tripDistanceMiles: tripDistanceMiles ?? this.tripDistanceMiles,
       odometerKm: odometerKm ?? this.odometerKm,

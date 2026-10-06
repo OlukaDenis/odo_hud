@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/database/isar_service.dart';
 import '../../providers/permissions_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../widgets/oem_guide_modal.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -66,6 +67,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final permissionAsync = ref.watch(permissionStatusProvider);
+    final theme = ref.watch(hudThemeProvider);
+    final primaryColor = theme.primaryColor;
 
     return Scaffold(
       backgroundColor: AppColors.amoledBlack,
@@ -95,8 +98,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         widget.initialStep > 0
                             ? 'Permissions Setup'
                             : 'Welcome to OdoHUD',
-                        style: const TextStyle(
-                          color: AppColors.electricGreen,
+                        style: TextStyle(
+                          color: primaryColor,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -124,8 +127,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 child: LinearProgressIndicator(
                   value: (_currentStep + 1) / 4,
                   backgroundColor: AppColors.charcoal,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.electricGreen,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    primaryColor,
                   ),
                   minHeight: 4,
                 ),
@@ -258,8 +261,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.electricGreen,
-                        foregroundColor: Colors.black,
+                        backgroundColor: primaryColor,
+                        foregroundColor: (ThemeData.estimateBrightnessForColor(primaryColor) == Brightness.dark)
+                            ? Colors.white
+                            : Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -303,6 +308,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required String actionLabel,
     required VoidCallback onAction,
   }) {
+    final primaryColor = ref.watch(hudThemeProvider).primaryColor;
+    final isPrimaryDark = ThemeData.estimateBrightnessForColor(primaryColor) == Brightness.dark;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
@@ -316,11 +324,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isGranted
-                    ? AppColors.electricGreen.withValues(alpha: 0.15)
+                    ? primaryColor.withValues(alpha: 0.15)
                     : AppColors.warningAmber.withValues(alpha: 0.15),
                 border: Border.all(
                   color: isGranted
-                      ? AppColors.electricGreen
+                      ? primaryColor
                       : AppColors.warningAmber,
                   width: 2,
                 ),
@@ -332,7 +340,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         imageAsset,
                         fit: BoxFit.contain,
                         color: isGranted
-                            ? AppColors.electricGreen
+                            ? primaryColor
                             : AppColors.warningAmber,
                       ),
                     )
@@ -340,7 +348,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       icon,
                       size: 40,
                       color: isGranted
-                          ? AppColors.electricGreen
+                          ? primaryColor
                           : AppColors.warningAmber,
                     ),
             ),
@@ -373,7 +381,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isGranted
-                    ? AppColors.electricGreen.withValues(alpha: 0.4)
+                    ? primaryColor.withValues(alpha: 0.4)
                     : AppColors.defaultCardBorder,
               ),
             ),
@@ -386,7 +394,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       : Icons.info_outline_rounded,
                   size: 18,
                   color: isGranted
-                      ? AppColors.electricGreen
+                      ? primaryColor
                       : AppColors.warningAmber,
                 ),
                 const SizedBox(width: 8),
@@ -396,7 +404,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: isGranted
-                          ? AppColors.electricGreen
+                          ? primaryColor
                           : AppColors.warningAmber,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -411,8 +419,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: isGranted
                   ? const Color(0xFF1E1E1E)
-                  : AppColors.electricGreen,
-              foregroundColor: isGranted ? Colors.white70 : Colors.black,
+                  : primaryColor,
+              foregroundColor: isGranted
+                  ? Colors.white70
+                  : (isPrimaryDark ? Colors.white : Colors.black),
               side: isGranted
                   ? const BorderSide(color: AppColors.defaultCardBorder)
                   : BorderSide.none,
@@ -424,14 +434,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             icon: Icon(
               isGranted ? Icons.check : Icons.touch_app_rounded,
               size: 20,
-              color: isGranted ? AppColors.electricGreen : Colors.black,
+              color: isGranted
+                  ? primaryColor
+                  : (isPrimaryDark ? Colors.white : Colors.black),
             ),
             label: Text(
               isGranted ? 'Permission Granted' : actionLabel,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
-                color: isGranted ? Colors.white : Colors.black,
+                color: isGranted
+                    ? Colors.white
+                    : (isPrimaryDark ? Colors.white : Colors.black),
               ),
             ),
             onPressed: onAction,

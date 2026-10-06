@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/hud_theme.dart';
 import '../../../providers/theme_provider.dart';
 import 'color_picker_dialog.dart';
@@ -61,7 +62,7 @@ class ColorCustomizationSheet extends ConsumerWidget {
                 style: liveTheme
                     .getTelemetryTextStyle(
                       fontSize: 16,
-                      color: liveTheme.speedNormal,
+                      color: liveTheme.textColor,
                       fontWeight: FontWeight.bold,
                     )
                     .copyWith(letterSpacing: 0.8),
@@ -74,18 +75,15 @@ class ColorCustomizationSheet extends ConsumerWidget {
           ),
           Text(
             'Personalize the 3-stage velocity alert color palette',
-            style: TextStyle(
-              fontSize: 12,
-              color: liveTheme.subtitleColor,
-            ),
+            style: TextStyle(fontSize: 12, color: liveTheme.subtitleColor),
           ),
           const SizedBox(height: 20),
 
-          // 1. Normal Speed Color
+          // 1. App Primary & Normal Speed Color
           _buildColorSelectionTile(
             context: context,
-            title: 'Normal Speed Color',
-            subtitle: 'Cruising velocity below warning limit',
+            title: 'App Primary & Normal Speed Color',
+            subtitle: 'Global primary accent & cruising speedometer color',
             currentColor: liveTheme.speedNormal,
             presets: const [
               Color(0xFF028AC4), // Electric Cyan / Blue (#028ac4)
@@ -192,10 +190,7 @@ class ColorCustomizationSheet extends ConsumerWidget {
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    color: theme.subtitleColor,
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 11),
                 ),
               ],
             ),
@@ -253,14 +248,20 @@ class ColorCustomizationSheet extends ConsumerWidget {
             const Spacer(),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 side: BorderSide(color: theme.cardBorderColor),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              icon:
-                  Icon(Icons.colorize_rounded, size: 14, color: theme.textColor),
+              icon: Icon(
+                Icons.colorize_rounded,
+                size: 14,
+                color: theme.textColor,
+              ),
               label: Text(
                 'Custom',
                 style: TextStyle(fontSize: 11, color: theme.textColor),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../providers/theme_provider.dart';
 
 class FontSelectionSheet extends ConsumerWidget {
@@ -70,7 +71,7 @@ class FontSelectionSheet extends ConsumerWidget {
                 style: liveTheme
                     .getTelemetryTextStyle(
                       fontSize: 16,
-                      color: liveTheme.speedNormal,
+                      color: liveTheme.textColor,
                       fontWeight: FontWeight.bold,
                     )
                     .copyWith(letterSpacing: 0.8),
@@ -83,10 +84,7 @@ class FontSelectionSheet extends ConsumerWidget {
           ),
           Text(
             'Choose a typography family for glanceable speed numerals',
-            style: TextStyle(
-              fontSize: 12,
-              color: liveTheme.subtitleColor,
-            ),
+            style: TextStyle(fontSize: 12, color: liveTheme.subtitleColor),
           ),
           const SizedBox(height: 16),
 
@@ -97,9 +95,7 @@ class FontSelectionSheet extends ConsumerWidget {
             decoration: BoxDecoration(
               color: liveTheme.backgroundColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: liveTheme.cardBorderColor,
-              ),
+              border: Border.all(color: liveTheme.cardBorderColor),
             ),
             child: Column(
               children: [
@@ -141,16 +137,19 @@ class FontSelectionSheet extends ConsumerWidget {
                 return Material(
                   color: Colors.transparent,
                   child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     title: Text(
                       font,
                       style: TextStyle(
                         color: isSelected
                             ? liveTheme.speedNormal
                             : liveTheme.textColor,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
                         fontSize: 15,
                       ),
                     ),
@@ -164,8 +163,10 @@ class FontSelectionSheet extends ConsumerWidget {
                       ),
                     ),
                     trailing: isSelected
-                        ? Icon(Icons.check_circle_rounded,
-                            color: liveTheme.speedNormal)
+                        ? Icon(
+                            Icons.check_circle_rounded,
+                            color: liveTheme.speedNormal,
+                          )
                         : null,
                     onTap: () {
                       HapticFeedback.selectionClick();

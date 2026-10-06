@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/hud_theme.dart';
 
 class MetricCard extends StatelessWidget {
@@ -24,7 +25,7 @@ class MetricCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardBackgroundColor,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.cardBorderColor, width: 1.2),
+        border: Border.all(color: theme.cardBackgroundColor, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,11 +40,13 @@ class MetricCard extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.getTelemetryTextStyle(
-                    fontSize: 11,
-                    color: theme.cardLabelColor,
-                    fontWeight: FontWeight.w600,
-                  ).copyWith(letterSpacing: 0.2),
+                  style: theme
+                      .getTelemetryTextStyle(
+                        fontSize: 11,
+                        color: theme.cardLabelColor,
+                        fontWeight: FontWeight.w600,
+                      )
+                      .copyWith(letterSpacing: 0.2),
                 ),
               ),
               if (icon != null) ...[

@@ -50,8 +50,9 @@ class _FullscreenDashboardScreenState
     final theme = ref.watch(hudThemeProvider);
     final isMetric = theme.isMetric;
 
-    final currentSpeed =
-        isMetric ? telemetry.currentSpeedKmh : telemetry.currentSpeedMph;
+    final currentSpeed = isMetric
+        ? telemetry.displaySpeedKmh
+        : telemetry.displaySpeedMph;
 
     // Minimal distance string
     final String tripDist;
@@ -68,8 +69,9 @@ class _FullscreenDashboardScreenState
 
     // Minimal moving minutes & time string
     final int minutes = telemetry.movingTimeSeconds ~/ 60;
-    final String timeFormatted =
-        UnitConverter.formatMovingTime(telemetry.movingTimeSeconds);
+    final String timeFormatted = UnitConverter.formatMovingTime(
+      telemetry.movingTimeSeconds,
+    );
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
@@ -95,7 +97,7 @@ class _FullscreenDashboardScreenState
                           child: Center(
                             child: SpeedDisplay(
                               currentSpeed: currentSpeed,
-                              speedKmh: telemetry.currentSpeedKmh,
+                              speedKmh: telemetry.displaySpeedKmh,
                               isMetric: isMetric,
                               theme: theme,
                             ),
@@ -107,7 +109,9 @@ class _FullscreenDashboardScreenState
                           flex: 7,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 24),
+                              horizontal: 20,
+                              vertical: 24,
+                            ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -143,7 +147,7 @@ class _FullscreenDashboardScreenState
                         child: Center(
                           child: SpeedDisplay(
                             currentSpeed: currentSpeed,
-                            speedKmh: telemetry.currentSpeedKmh,
+                            speedKmh: telemetry.displaySpeedKmh,
                             isMetric: isMetric,
                             theme: theme,
                           ),
@@ -205,8 +209,9 @@ class _FullscreenDashboardScreenState
                           decoration: BoxDecoration(
                             color: telemetry.isHudMirrored
                                 ? theme.speedNormal.withValues(alpha: 0.9)
-                                : theme.cardBackgroundColor
-                                    .withValues(alpha: 0.7),
+                                : theme.cardBackgroundColor.withValues(
+                                    alpha: 0.7,
+                                  ),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: theme.cardBorderColor,
@@ -233,10 +238,13 @@ class _FullscreenDashboardScreenState
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: theme.cardBackgroundColor
-                                .withValues(alpha: 0.8),
+                            color: theme.cardBackgroundColor.withValues(
+                              alpha: 0.8,
+                            ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: theme.cardBorderColor,
@@ -286,12 +294,9 @@ class _FullscreenDashboardScreenState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: theme.cardBackgroundColor.withValues(alpha: 0.7),
+        color: theme.cardBackgroundColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: theme.cardBorderColor.withValues(alpha: 0.6),
-          width: 1.2,
-        ),
+        border: Border.all(color: theme.cardBackgroundColor, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,11 +304,7 @@ class _FullscreenDashboardScreenState
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: 14,
-                color: theme.subtitleColor,
-              ),
+              Icon(icon, size: 14, color: theme.subtitleColor),
               const SizedBox(width: 6),
               Text(
                 label,

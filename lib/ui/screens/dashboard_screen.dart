@@ -499,6 +499,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                   // Bottom Action Bar (rendered at bottom in Portrait; nested under grid in Landscape)
                   if (!isLandscape) actionBar,
+                  const SizedBox(height: 16),
                 ],
               );
             },

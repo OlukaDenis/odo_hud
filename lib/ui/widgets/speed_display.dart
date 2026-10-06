@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/hud_theme.dart';
 
 class SpeedDisplay extends StatelessWidget {
@@ -45,40 +46,37 @@ class SpeedDisplay extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     speedText,
-                    style: theme.getSpeedTextStyle(
-                      fontSize: fontSize,
-                      color: speedColor,
-                    ).copyWith(
-                      shadows: [
-                        Shadow(
-                          color: speedColor.withValues(alpha: 0.35),
-                          blurRadius: 16,
+                    style: theme
+                        .getSpeedTextStyle(
+                          fontSize: fontSize,
+                          color: speedColor,
+                        )
+                        .copyWith(
+                          shadows: [
+                            Shadow(
+                              color: speedColor.withValues(alpha: 0.35),
+                              blurRadius: 16,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                   ),
                 ),
 
                 // Speed Unit Label
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: theme.cardBackgroundColor.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: theme.cardBorderColor,
-                      width: 1,
-                    ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 0,
                   ),
                   child: Text(
                     unitText,
-                    style: theme.getTelemetryTextStyle(
-                      fontSize: 16,
-                      color: theme.cardLabelColor,
-                      fontWeight: FontWeight.bold,
-                    ).copyWith(
-                      letterSpacing: 4.0,
-                    ),
+                    style: theme
+                        .getTelemetryTextStyle(
+                          fontSize: 14,
+                          color: theme.textColor,
+                          fontWeight: FontWeight.bold,
+                        )
+                        .copyWith(letterSpacing: 1.0),
                   ),
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/hud_theme.dart';
 import '../../../providers/theme_provider.dart';
 import 'distance_unit_selection_sheet.dart';
@@ -31,12 +32,12 @@ class SpeedUnitCard extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.speedNormal.withValues(alpha: 0.15),
+                    color: theme.textColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.speed_rounded,
-                    color: theme.speedNormal,
+                    color: theme.textColor,
                     size: 20,
                   ),
                 ),
@@ -52,17 +53,16 @@ class SpeedUnitCard extends ConsumerWidget {
                   config.isMetric
                       ? 'Kilometers per hour (KM/H)'
                       : 'Miles per hour (MPH)',
-                  style: TextStyle(
-                    color: theme.subtitleColor,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 12),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.speedNormal.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
@@ -93,12 +93,12 @@ class SpeedUnitCard extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.speedNormal.withValues(alpha: 0.15),
+                    color: theme.textColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.straighten_rounded,
-                    color: theme.speedNormal,
+                    color: theme.textColor,
                     size: 20,
                   ),
                 ),
@@ -114,17 +114,16 @@ class SpeedUnitCard extends ConsumerWidget {
                   config.distanceUnit == 'km'
                       ? 'Kilometers (km)'
                       : 'Meters (m)',
-                  style: TextStyle(
-                    color: theme.subtitleColor,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 12),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.speedNormal.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),

@@ -25,6 +25,8 @@ class _OemGuideModalState extends State<OemGuideModal> {
   @override
   Widget build(BuildContext context) {
     final brand = OemBrand.supportedBrands[_selectedBrandIndex];
+    final primary = Theme.of(context).colorScheme.primary;
+    final isPrimaryDark = ThemeData.estimateBrightnessForColor(primary) == Brightness.dark;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.82,
@@ -107,7 +109,7 @@ class _OemGuideModalState extends State<OemGuideModal> {
                       ),
                     ),
                     selected: isSelected,
-                    selectedColor: AppColors.electricGreen,
+                    selectedColor: primary,
                     backgroundColor: const Color(0xFF1E1E1E),
                     onSelected: (val) {
                       if (val) setState(() => _selectedBrandIndex = index);
@@ -129,10 +131,10 @@ class _OemGuideModalState extends State<OemGuideModal> {
                 children: [
                   Text(
                     brand.brandName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.electricGreen,
+                      color: primary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -188,15 +190,15 @@ class _OemGuideModalState extends State<OemGuideModal> {
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.electricGreen.withValues(alpha: 0.2),
+                              color: primary.withValues(alpha: 0.2),
                               border: Border.all(
-                                color: AppColors.electricGreen,
+                                color: primary,
                               ),
                             ),
                             child: Text(
                               '$idx',
-                              style: const TextStyle(
-                                color: AppColors.electricGreen,
+                              style: TextStyle(
+                                color: primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
@@ -248,8 +250,8 @@ class _OemGuideModalState extends State<OemGuideModal> {
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.electricGreen,
-                      foregroundColor: Colors.black,
+                      backgroundColor: primary,
+                      foregroundColor: isPrimaryDark ? Colors.white : Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

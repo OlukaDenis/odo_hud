@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/hud_theme.dart';
 import '../../../providers/theme_provider.dart';
 import 'speed_thresholds_sheet.dart';
@@ -28,11 +29,14 @@ class SpeedAlertsCard extends ConsumerWidget {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: theme.speedNormal.withValues(alpha: 0.15),
+                color: theme.textColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(Icons.speed_rounded,
-                  color: theme.speedNormal, size: 20),
+              child: Icon(
+                Icons.speed_rounded,
+                color: theme.textColor,
+                size: 20,
+              ),
             ),
             title: Text(
               'Speed Alert Thresholds',
@@ -44,17 +48,16 @@ class SpeedAlertsCard extends ConsumerWidget {
             ),
             subtitle: Text(
               'Warn: ${config.warningThresholdKmh.toInt()} $unit • Crit: ${config.criticalThresholdKmh.toInt()} $unit',
-              style: TextStyle(
-                color: theme.subtitleColor,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: theme.subtitleColor, fontSize: 12),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.speedWarning.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
@@ -70,8 +73,10 @@ class SpeedAlertsCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.speedCritical.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),

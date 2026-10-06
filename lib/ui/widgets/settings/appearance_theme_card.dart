@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/hud_theme.dart';
 import '../../../providers/theme_provider.dart';
 import 'color_customization_sheet.dart';
@@ -32,14 +33,14 @@ class AppearanceThemeCard extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.speedNormal.withValues(alpha: 0.15),
+                    color: theme.textColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     theme.isDarkMode
                         ? Icons.dark_mode_rounded
                         : Icons.light_mode_rounded,
-                    color: theme.speedNormal,
+                    color: theme.textColor,
                     size: 20,
                   ),
                 ),
@@ -53,16 +54,16 @@ class AppearanceThemeCard extends ConsumerWidget {
                 ),
                 subtitle: Text(
                   theme.isDarkMode ? 'Dark Mode' : 'Light Mode',
-                  style: TextStyle(
-                    color: theme.subtitleColor,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 12),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.speedNormal.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
@@ -77,8 +78,11 @@ class AppearanceThemeCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(Icons.chevron_right_rounded,
-                        color: theme.subtitleColor, size: 20),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.subtitleColor,
+                      size: 20,
+                    ),
                   ],
                 ),
                 onTap: () => ThemeSelectionSheet.show(context),
@@ -90,11 +94,14 @@ class AppearanceThemeCard extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.speedNormal.withValues(alpha: 0.15),
+                    color: theme.textColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.text_fields_rounded,
-                      color: theme.speedNormal, size: 20),
+                  child: Icon(
+                    Icons.text_fields_rounded,
+                    color: theme.textColor,
+                    size: 20,
+                  ),
                 ),
                 title: Text(
                   'Speedometer Font',
@@ -106,10 +113,7 @@ class AppearanceThemeCard extends ConsumerWidget {
                 ),
                 subtitle: Text(
                   '${config.speedFontFamily} (Tap to change)',
-                  style: TextStyle(
-                    color: theme.subtitleColor,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 12),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -123,8 +127,10 @@ class AppearanceThemeCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Icon(Icons.chevron_right_rounded,
-                        color: theme.subtitleColor),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.subtitleColor,
+                    ),
                   ],
                 ),
                 onTap: () => FontSelectionSheet.show(context),
@@ -136,14 +142,17 @@ class AppearanceThemeCard extends ConsumerWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.speedNormal.withValues(alpha: 0.15),
+                    color: theme.textColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.palette_outlined,
-                      color: theme.speedNormal, size: 20),
+                  child: Icon(
+                    Icons.palette_outlined,
+                    color: theme.textColor,
+                    size: 20,
+                  ),
                 ),
                 title: Text(
-                  'Speed Display Colors',
+                  'Primary & Speed Display Colors',
                   style: TextStyle(
                     color: theme.textColor,
                     fontWeight: FontWeight.w600,
@@ -151,11 +160,8 @@ class AppearanceThemeCard extends ConsumerWidget {
                   ),
                 ),
                 subtitle: Text(
-                  'Normal, Warning & Critical safety colors',
-                  style: TextStyle(
-                    color: theme.subtitleColor,
-                    fontSize: 12,
-                  ),
+                  'App-wide primary color, warning & critical alerts',
+                  style: TextStyle(color: theme.subtitleColor, fontSize: 12),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -166,8 +172,10 @@ class AppearanceThemeCard extends ConsumerWidget {
                     const SizedBox(width: 4),
                     _buildMiniColorDot(theme.speedCritical),
                     const SizedBox(width: 8),
-                    Icon(Icons.chevron_right_rounded,
-                        color: theme.subtitleColor),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.subtitleColor,
+                    ),
                   ],
                 ),
                 onTap: () => ColorCustomizationSheet.show(context),
@@ -178,7 +186,6 @@ class AppearanceThemeCard extends ConsumerWidget {
       ],
     );
   }
-
 
   Widget _buildMiniColorDot(Color color) {
     return Container(

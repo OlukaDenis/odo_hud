@@ -8,6 +8,7 @@ class AppColors {
   static const Color charcoal = Color(0xFF121212);
 
   static const Color defaultSpeedColor = Color(0xFF028AC4);
+  static const Color primaryColor = defaultSpeedColor; // App global primary theme color (Electric Blue #028AC4)
   static const Color electricGreen = Color(0xFF00FF66);
   static const Color cyanAccent = Color(0xFF00E5FF);
   static const Color warningAmber = Color(0xFFFFB800);

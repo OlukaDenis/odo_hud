@@ -9,6 +9,8 @@ class HudTheme {
 
   Color get backgroundColor => Color(config.backgroundColorValue);
   Color get speedNormal => Color(config.speedColorNormal);
+  /// The app's global primary theme accent, user-configurable from speedNormal
+  Color get primaryColor => speedNormal;
   Color get speedWarning => Color(config.speedColorWarning);
   Color get speedCritical => Color(config.speedColorCritical);
 

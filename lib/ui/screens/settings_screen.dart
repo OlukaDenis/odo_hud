@@ -6,6 +6,7 @@ import '../widgets/settings/about_info_card.dart';
 import '../widgets/settings/appearance_theme_card.dart';
 import '../widgets/settings/permissions_nav_card.dart';
 import '../widgets/settings/speed_alerts_card.dart';
+import '../widgets/settings/speed_calibration_card.dart';
 import '../widgets/settings/speed_unit_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -38,6 +39,10 @@ class SettingsScreen extends ConsumerWidget {
         children: const [
           // 1. SPEED UNIT SYSTEM (TOP OF SCREEN - KM/H DEFAULT)
           SpeedUnitCard(),
+          SizedBox(height: 20),
+
+          // 2. SPEEDOMETER CALIBRATION OFFSET & TIRE SIZING (UNECE REG 39)
+          SpeedCalibrationCard(),
           SizedBox(height: 20),
 
           // 3. APPEARANCE & THEME (DARK AMOLED DEFAULT VS LIGHT, FONTS, COLORS)

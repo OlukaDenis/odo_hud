@@ -25,8 +25,8 @@ class DashboardPortraitLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentSpeed = isMetric
-        ? telemetry.currentSpeedKmh
-        : telemetry.currentSpeedMph;
+        ? telemetry.displaySpeedKmh
+        : telemetry.displaySpeedMph;
 
     return Column(
       children: [
@@ -35,7 +35,7 @@ class DashboardPortraitLayout extends StatelessWidget {
           flex: 6,
           child: SpeedDisplay(
             currentSpeed: currentSpeed,
-            speedKmh: telemetry.currentSpeedKmh,
+            speedKmh: telemetry.displaySpeedKmh,
             isMetric: isMetric,
             theme: theme,
           ),
