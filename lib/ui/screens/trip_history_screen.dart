@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
@@ -227,158 +228,264 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
     );
   }
 
-  Widget _buildSummaryHeader(List<TripRecord> trips, bool isMetric, HudTheme theme) {
+  Widget _buildSummaryHeader(
+      List<TripRecord> trips, bool isMetric, HudTheme theme) {
     double totalKm = 0.0;
-    int totalSeconds = 0;
+    int totalMovingSeconds = 0;
+    int totalDurationSeconds = 0;
     double maxSpeed = 0.0;
 
     for (final trip in trips) {
       totalKm += trip.distanceKm;
-      totalSeconds += trip.durationSeconds;
+      totalDurationSeconds += trip.durationSeconds;
+      totalMovingSeconds += trip.movingDurationSeconds > 0
+          ? trip.movingDurationSeconds
+          : trip.durationSeconds;
       if (trip.topSpeedKmh > maxSpeed) {
         maxSpeed = trip.topSpeedKmh;
       }
     }
 
-    final displayDistance = isMetric ? totalKm : UnitConverter.kmToMiles(totalKm);
+    final displayDistance =
+        isMetric ? totalKm : UnitConverter.kmToMiles(totalKm);
     final distUnit = isMetric ? 'KM' : 'MI';
 
-    final displayTopSpeed = isMetric ? maxSpeed : UnitConverter.kmhToMph(maxSpeed);
+    final displayTopSpeed =
+        isMetric ? maxSpeed : UnitConverter.kmhToMph(maxSpeed);
     final speedUnit = isMetric ? 'KM/H' : 'MPH';
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141414),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF282828),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final avgDistPerRide =
+        trips.isNotEmpty ? displayDistance / trips.length : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header Pill & Badge
+        Padding(
+          padding: const EdgeInsets.only(left: 2, bottom: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.cyanAccent.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.auto_graph_rounded,
-                  color: AppColors.cyanAccent,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: AppColors.cyanAccent,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.cyanAccent.withValues(alpha: 0.6),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Text(
-                    'LIFETIME RIDE STATS',
+                    'LIFETIME TELEMETRY',
                     style: theme.getTelemetryTextStyle(
                       fontSize: 11.0,
                       color: Colors.white54,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  Text(
-                    '${trips.length} completed ${trips.length == 1 ? 'ride' : 'rides'}',
-                    style: theme.getTelemetryTextStyle(
-                      fontSize: 15.0,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSummaryMetric(
-                  label: 'TOTAL DISTANCE',
-                  value: displayDistance.toStringAsFixed(1),
-                  unit: distUnit,
-                  theme: theme,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF2E2E2E)),
                 ),
-              ),
-              Container(width: 1, height: 36, color: const Color(0xFF282828)),
-              Expanded(
-                child: _buildSummaryMetric(
-                  label: 'TIME IN SADDLE',
-                  value: UnitConverter.formatMovingTime(totalSeconds),
-                  unit: '',
-                  theme: theme,
-                ),
-              ),
-              Container(width: 1, height: 36, color: const Color(0xFF282828)),
-              Expanded(
-                child: _buildSummaryMetric(
-                  label: 'RECORD PEAK',
-                  value: displayTopSpeed.toStringAsFixed(0),
-                  unit: speedUnit,
-                  theme: theme,
+                child: Text(
+                  '${trips.length} ${trips.length == 1 ? 'ride' : 'rides'}',
+                  style: theme.getTelemetryTextStyle(
+                    fontSize: 11.0,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryMetric({
-    required String label,
-    required String value,
-    required String unit,
-    required HudTheme theme,
-  }) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: theme.getTelemetryTextStyle(
-            fontSize: 9.0,
-            color: Colors.white38,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
           ),
         ),
-        const SizedBox(height: 4),
+
+        // Row 1: Total Distance & Time in Motion
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
           children: [
-            Text(
-              value,
-              style: theme.getTelemetryTextStyle(
-                fontSize: 16.0,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: _buildSleekStatCard(
+                label: 'TOTAL DISTANCE',
+                value: displayDistance.toStringAsFixed(1),
+                unit: distUnit,
+                subtitle: '${trips.length} total logged',
+                icon: Icons.route_rounded,
+                accentColor: AppColors.cyanAccent,
+                theme: theme,
               ),
             ),
-            if (unit.isNotEmpty) ...[
-              const SizedBox(width: 3),
-              Text(
-                unit,
-                style: theme.getTelemetryTextStyle(
-                  fontSize: 10.0,
-                  color: AppColors.cyanAccent,
-                  fontWeight: FontWeight.w600,
-                ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildSleekStatCard(
+                label: 'TIME IN SADDLE',
+                value: UnitConverter.formatMovingTime(totalMovingSeconds > 0
+                    ? totalMovingSeconds
+                    : totalDurationSeconds),
+                unit: '',
+                subtitle: 'Active riding time',
+                icon: Icons.timer_outlined,
+                accentColor: theme.speedNormal,
+                theme: theme,
               ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Row 2: Record Peak & Avg Per Ride
+        Row(
+          children: [
+            Expanded(
+              child: _buildSleekStatCard(
+                label: 'RECORD PEAK',
+                value: displayTopSpeed.toStringAsFixed(0),
+                unit: speedUnit,
+                subtitle: 'All-time maximum',
+                icon: Icons.bolt_rounded,
+                accentColor: const Color(0xFFFFB800),
+                theme: theme,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildSleekStatCard(
+                label: 'AVG PER RIDE',
+                value: avgDistPerRide.toStringAsFixed(1),
+                unit: distUnit,
+                subtitle: 'Average distance',
+                icon: Icons.explore_outlined,
+                accentColor: const Color(0xFF818CF8),
+                theme: theme,
+              ),
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildSleekStatCard({
+    required String label,
+    required String value,
+    required String unit,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required HudTheme theme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141414),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF242424),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon badge + label
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 14,
+                  color: accentColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.getTelemetryTextStyle(
+                    fontSize: 10.0,
+                    color: Colors.white54,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Primary Value + Unit
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                value,
+                style: theme.getTelemetryTextStyle(
+                  fontSize: 20.0,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (unit.isNotEmpty) ...[
+                const SizedBox(width: 3),
+                Text(
+                  unit,
+                  style: theme.getTelemetryTextStyle(
+                    fontSize: 10.0,
+                    color: accentColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 4),
+
+          // Subtitle / context
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 11.0,
+              color: Colors.white38,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -395,7 +502,6 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF141414),
         borderRadius: BorderRadius.circular(14),
@@ -404,78 +510,106 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
           width: 1,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Title & Date & Delete
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            context.push('/history/detail', extra: trip);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: Title & Date & Actions
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      trip.title.isEmpty ? 'Recorded Ride' : trip.title,
-                      style: theme.getTelemetryTextStyle(
-                        fontSize: 16.0,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  trip.title.isEmpty ? 'Recorded Ride' : trip.title,
+                                  style: theme.getTelemetryTextStyle(
+                                    fontSize: 16.0,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 13,
+                                color: Colors.white30,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$dateStr • $timeStr',
+                            style: theme.getTelemetryTextStyle(
+                              fontSize: 12.0,
+                              color: Colors.white54,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$dateStr • $timeStr',
-                      style: theme.getTelemetryTextStyle(
-                        fontSize: 12.0,
-                        color: Colors.white54,
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded,
+                          size: 20, color: Colors.white38),
+                      onPressed: () => _confirmDeleteTrip(context, trip),
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Colors.white38),
-                onPressed: () => _confirmDeleteTrip(context, trip),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(color: Color(0xFF222222), height: 1),
-          const SizedBox(height: 14),
+                const SizedBox(height: 14),
+                const Divider(color: Color(0xFF222222), height: 1),
+                const SizedBox(height: 14),
 
-          // Metrics Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildTripMetric(
-                label: 'DISTANCE',
-                value: dist.toStringAsFixed(1),
-                unit: distUnit,
-                theme: theme,
-                highlight: true,
-              ),
-              _buildTripMetric(
-                label: 'DURATION',
-                value: UnitConverter.formatMovingTime(trip.durationSeconds),
-                unit: '',
-                theme: theme,
-              ),
-              _buildTripMetric(
-                label: 'AVG SPEED',
-                value: avgSpeed.toStringAsFixed(1),
-                unit: speedUnit,
-                theme: theme,
-              ),
-              _buildTripMetric(
-                label: 'MAX SPEED',
-                value: maxSpeed.toStringAsFixed(1),
-                unit: speedUnit,
-                theme: theme,
-              ),
-            ],
+                // Metrics Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTripMetric(
+                      label: 'DISTANCE',
+                      value: dist.toStringAsFixed(1),
+                      unit: distUnit,
+                      theme: theme,
+                      highlight: true,
+                    ),
+                    _buildTripMetric(
+                      label: 'DURATION',
+                      value: UnitConverter.formatMovingTime(
+                          trip.movingDurationSeconds > 0
+                              ? trip.movingDurationSeconds
+                              : trip.durationSeconds),
+                      unit: '',
+                      theme: theme,
+                    ),
+                    _buildTripMetric(
+                      label: 'AVG SPEED',
+                      value: avgSpeed.toStringAsFixed(1),
+                      unit: speedUnit,
+                      theme: theme,
+                    ),
+                    _buildTripMetric(
+                      label: 'MAX SPEED',
+                      value: maxSpeed.toStringAsFixed(1),
+                      unit: speedUnit,
+                      theme: theme,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

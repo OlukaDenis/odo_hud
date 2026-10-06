@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/theme/hud_theme.dart';
 import '../../core/utils/unit_converter.dart';
 import '../../data/models/trip_record.dart';
@@ -45,6 +46,107 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     context.push('/history');
   }
 
+  void _openTripDetail(TripRecord trip) {
+    context.push('/history/detail', extra: trip);
+  }
+
+  void _confirmResetTrip() {
+    final telemetry = ref.read(telemetryProvider);
+    final isRecording = telemetry.isRecordingTrip;
+    final theme = ref.read(hudThemeProvider);
+
+    HapticFeedback.selectionClick();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor:
+            theme.isDarkMode ? const Color(0xFF161616) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.cardBorderColor),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              isRecording
+                  ? Icons.warning_amber_rounded
+                  : Icons.refresh_rounded,
+              color: isRecording ? AppColors.criticalRed : theme.speedNormal,
+              size: 24,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              isRecording ? 'Discard Ride?' : 'Reset Trip Meters?',
+              style: TextStyle(
+                color: theme.textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isRecording
+              ? 'This will cancel the active recording and reset all trip counters to 0. The current ride will not be saved.'
+              : 'Reset active trip distance, moving time, and average speed to 0.0? Your overall lifetime odometer will be preserved.',
+          style: TextStyle(
+            color: theme.subtitleColor,
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              isRecording ? 'Keep Riding' : 'Cancel',
+              style: TextStyle(color: theme.subtitleColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  isRecording ? AppColors.criticalRed : theme.speedNormal,
+              foregroundColor: isRecording ? Colors.white : Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              HapticFeedback.heavyImpact();
+              ref.read(telemetryProvider.notifier).resetTrip();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: const BorderSide(color: Color(0xFF333333)),
+                  ),
+                  duration: const Duration(seconds: 2),
+                  content: Text(
+                    isRecording
+                        ? 'Ride discarded'
+                        : 'Trip meters reset to 0.0',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Text(
+              isRecording ? 'Discard & Reset' : 'Reset Trip',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleToggleRecording() async {
     final telemetry = ref.read(telemetryProvider);
     final notifier = ref.read(telemetryProvider.notifier);
@@ -55,7 +157,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         _showTripFinishedSheet(trip);
       }
     } else {
-      notifier.startTripRecording();
+      await notifier.startTripRecording();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -230,10 +332,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                     onPressed: () {
                       Navigator.of(ctx).pop();
-                      _openTripHistory();
+                      _openTripDetail(trip);
                     },
                     child: const Text(
-                      'View All Trips',
+                      'View Ride Details',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -313,8 +415,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 onTogglePause: () => ref
                     .read(telemetryProvider.notifier)
                     .togglePauseTripRecording(),
-                onResetTrip: () =>
-                    ref.read(telemetryProvider.notifier).resetTrip(),
+                onResetTrip: _confirmResetTrip,
                 theme: theme,
               );
 

@@ -41,8 +41,11 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
   // Active Trip Recording Session
   DateTime? _recordingStartTime;
   double _recordedTripMeters = 0.0;
-  int _recordedTripSeconds = 0;
+  int _recordedTripSeconds = 0; // Elapsed total seconds
+  int _recordedTripMovingSeconds = 0; // Active moving seconds
+  int _recordedTripPauseSeconds = 0; // Paused / idle seconds
   double _recordedTripMaxSpeedKmh = 0.0;
+  final List<TripEvent> _tripEvents = [];
 
   TelemetryNotifier(this._isar) : super(const TelemetryState()) {
     _initialize();
@@ -82,24 +85,39 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
     // 5. Start Moving Second Timer (increments moving time when speed > 1.5 km/h)
     _movingSecondTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_isMoving) {
-        _activeTripMovingSeconds++;
-        final curTripKm = UnitConverter.metersToKm(_activeTripMeters);
-        final curAvgSpeed = _activeTripMovingSeconds > 0
-            ? curTripKm / (_activeTripMovingSeconds / 3600.0)
-            : 0.0;
+      if (state.isRecordingTrip) {
+        if (!state.isTripPaused) {
+          _recordedTripSeconds++;
+          if (_isMoving) {
+            _activeTripMovingSeconds++;
+            _recordedTripMovingSeconds++;
+          }
+          final curTripKm = UnitConverter.metersToKm(_recordedTripMeters);
+          final curAvgSpeed = _recordedTripMovingSeconds > 0
+              ? curTripKm / (_recordedTripMovingSeconds / 3600.0)
+              : 0.0;
 
-        state = state.copyWith(
-          movingTimeSeconds: _activeTripMovingSeconds,
-          averageSpeedKmh: curAvgSpeed,
-        );
-      }
+          state = state.copyWith(
+            movingTimeSeconds: _activeTripMovingSeconds,
+            recordedTripSeconds: _recordedTripSeconds,
+            averageSpeedKmh: curAvgSpeed,
+          );
+        } else {
+          _recordedTripPauseSeconds++;
+        }
+      } else {
+        if (_isMoving) {
+          _activeTripMovingSeconds++;
+          final curTripKm = UnitConverter.metersToKm(_activeTripMeters);
+          final curAvgSpeed = _activeTripMovingSeconds > 0
+              ? curTripKm / (_activeTripMovingSeconds / 3600.0)
+              : 0.0;
 
-      if (state.isRecordingTrip && !state.isTripPaused) {
-        _recordedTripSeconds++;
-        state = state.copyWith(
-          recordedTripSeconds: _recordedTripSeconds,
-        );
+          state = state.copyWith(
+            movingTimeSeconds: _activeTripMovingSeconds,
+            averageSpeedKmh: curAvgSpeed,
+          );
+        }
       }
     });
 
@@ -138,18 +156,24 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
         _isMoving = speedKmh >= AppConstants.minMovingSpeedKmh;
 
         if (_isMoving) {
-          _activeTripMeters += update.distanceDeltaMeters;
           _lifetimeOdometerMeters += update.distanceDeltaMeters;
 
-          if (speedKmh > _maxSpeedKmh) {
-            _maxSpeedKmh = speedKmh;
-          }
-        }
-
-        if (state.isRecordingTrip && !state.isTripPaused) {
-          _recordedTripMeters += update.distanceDeltaMeters;
-          if (speedKmh > _recordedTripMaxSpeedKmh) {
-            _recordedTripMaxSpeedKmh = speedKmh;
+          if (state.isRecordingTrip) {
+            if (!state.isTripPaused) {
+              _recordedTripMeters += update.distanceDeltaMeters;
+              _activeTripMeters = _recordedTripMeters;
+              if (speedKmh > _maxSpeedKmh) {
+                _maxSpeedKmh = speedKmh;
+              }
+              if (speedKmh > _recordedTripMaxSpeedKmh) {
+                _recordedTripMaxSpeedKmh = speedKmh;
+              }
+            }
+          } else {
+            _activeTripMeters += update.distanceDeltaMeters;
+            if (speedKmh > _maxSpeedKmh) {
+              _maxSpeedKmh = speedKmh;
+            }
           }
         }
 
@@ -157,8 +181,11 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
         final tripMiles = UnitConverter.kmToMiles(tripKm);
         final odoKm = UnitConverter.metersToKm(_lifetimeOdometerMeters);
 
-        final avgSpeedKmh = _activeTripMovingSeconds > 0
-            ? tripKm / (_activeTripMovingSeconds / 3600.0)
+        final activeMovingSecs = state.isRecordingTrip
+            ? _recordedTripMovingSeconds
+            : _activeTripMovingSeconds;
+        final avgSpeedKmh = activeMovingSecs > 0
+            ? tripKm / (activeMovingSecs / 3600.0)
             : 0.0;
 
         final cardinal = UnitConverter.degreesToCardinal(update.headingDegrees);
@@ -225,16 +252,41 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
     state = state.copyWith(isHudMirrored: !state.isHudMirrored);
   }
 
-  void startTripRecording() {
+  Future<void> startTripRecording() async {
     _recordingStartTime = DateTime.now();
     _recordedTripMeters = 0.0;
     _recordedTripSeconds = 0;
+    _recordedTripMovingSeconds = 0;
+    _recordedTripPauseSeconds = 0;
     _recordedTripMaxSpeedKmh = state.currentSpeedKmh;
+
+    // Reset dashboard active trip counts so they cleanly mirror the recorded ride
+    _activeTripMeters = 0.0;
+    _activeTripMovingSeconds = 0;
+    _maxSpeedKmh = state.currentSpeedKmh;
+
+    _tripEvents.clear();
+    _tripEvents.add(
+      TripEvent(
+        type: 'start',
+        timestamp: _recordingStartTime!,
+        distanceKm: 0.0,
+        speedKmh: state.currentSpeedKmh,
+      ),
+    );
+
+    LocationService.instance.resetLastPosition();
+    await _isar.resetTrip();
 
     state = state.copyWith(
       isRecordingTrip: true,
       isTripPaused: false,
       recordingStartTime: _recordingStartTime,
+      tripDistanceKm: 0.0,
+      tripDistanceMiles: 0.0,
+      movingTimeSeconds: 0,
+      averageSpeedKmh: 0.0,
+      maxSpeedKmh: _maxSpeedKmh,
       recordedTripDistanceKm: 0.0,
       recordedTripSeconds: 0,
       recordedTripMaxSpeedKmh: _recordedTripMaxSpeedKmh,
@@ -243,7 +295,20 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
   void togglePauseTripRecording() {
     if (!state.isRecordingTrip) return;
-    state = state.copyWith(isTripPaused: !state.isTripPaused);
+    final willBePaused = !state.isTripPaused;
+    final now = DateTime.now();
+    final currentDistKm = UnitConverter.metersToKm(_recordedTripMeters);
+
+    _tripEvents.add(
+      TripEvent(
+        type: willBePaused ? 'pause' : 'resume',
+        timestamp: now,
+        distanceKm: currentDistKm,
+        speedKmh: state.currentSpeedKmh,
+      ),
+    );
+
+    state = state.copyWith(isTripPaused: willBePaused);
   }
 
   Future<TripRecord?> stopTripRecording() async {
@@ -255,38 +320,95 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
     final durationSec = _recordedTripSeconds > 0
         ? _recordedTripSeconds
         : end.difference(start).inSeconds;
+    final movingSec = _recordedTripMovingSeconds;
+    final pauseSec = _recordedTripPauseSeconds;
     final topSpeed = _recordedTripMaxSpeedKmh;
-    final avgSpeed = durationSec > 0
-        ? distanceKm / (durationSec / 3600.0)
-        : 0.0;
+    final avgSpeed = movingSec > 0
+        ? distanceKm / (movingSec / 3600.0)
+        : (durationSec > 0 ? distanceKm / (durationSec / 3600.0) : 0.0);
+
+    _tripEvents.add(
+      TripEvent(
+        type: 'stop',
+        timestamp: end,
+        distanceKm: distanceKm,
+        speedKmh: state.currentSpeedKmh,
+      ),
+    );
 
     final trip = TripRecord()
       ..startTime = start
       ..endTime = end
       ..distanceKm = distanceKm
       ..durationSeconds = durationSec
+      ..movingDurationSeconds = movingSec
+      ..pauseDurationSeconds = pauseSec
       ..topSpeedKmh = topSpeed
       ..avgSpeedKmh = avgSpeed
       ..title = _generateHumanTripTitle(start)
       ..isCompleted = true;
+    trip.events = List.from(_tripEvents);
 
     await _isar.saveTrip(trip);
+
+    // Reset all dashboard counts back to 0.0 ready for the next ride
+    _activeTripMeters = 0.0;
+    _activeTripMovingSeconds = 0;
+    _maxSpeedKmh = 0.0;
+    _recordedTripMeters = 0.0;
+    _recordedTripSeconds = 0;
+    _recordedTripMovingSeconds = 0;
+    _recordedTripPauseSeconds = 0;
+    _recordingStartTime = null;
+    _tripEvents.clear();
+    LocationService.instance.resetLastPosition();
+    await _isar.resetTrip();
 
     state = state.copyWith(
       isRecordingTrip: false,
       isTripPaused: false,
       recordingStartTime: null,
+      tripDistanceKm: 0.0,
+      tripDistanceMiles: 0.0,
+      movingTimeSeconds: 0,
+      averageSpeedKmh: 0.0,
+      maxSpeedKmh: 0.0,
       recordedTripDistanceKm: 0.0,
       recordedTripSeconds: 0,
       recordedTripMaxSpeedKmh: 0.0,
     );
 
+    return trip;
+  }
+
+  Future<void> discardActiveTripRecording() async {
+    _recordingStartTime = null;
     _recordedTripMeters = 0.0;
     _recordedTripSeconds = 0;
+    _recordedTripMovingSeconds = 0;
+    _recordedTripPauseSeconds = 0;
     _recordedTripMaxSpeedKmh = 0.0;
-    _recordingStartTime = null;
+    _tripEvents.clear();
 
-    return trip;
+    _activeTripMeters = 0.0;
+    _activeTripMovingSeconds = 0;
+    _maxSpeedKmh = 0.0;
+    LocationService.instance.resetLastPosition();
+    await _isar.resetTrip();
+
+    state = state.copyWith(
+      isRecordingTrip: false,
+      isTripPaused: false,
+      recordingStartTime: null,
+      tripDistanceKm: 0.0,
+      tripDistanceMiles: 0.0,
+      movingTimeSeconds: 0,
+      averageSpeedKmh: 0.0,
+      maxSpeedKmh: 0.0,
+      recordedTripDistanceKm: 0.0,
+      recordedTripSeconds: 0,
+      recordedTripMaxSpeedKmh: 0.0,
+    );
   }
 
   String _generateHumanTripTitle(DateTime dt) {
@@ -314,6 +436,11 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
   }
 
   Future<void> resetTrip() async {
+    if (state.isRecordingTrip) {
+      await discardActiveTripRecording();
+      return;
+    }
+
     _activeTripMeters = 0.0;
     _activeTripMovingSeconds = 0;
     _maxSpeedKmh = 0.0;

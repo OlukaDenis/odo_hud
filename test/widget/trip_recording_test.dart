@@ -159,5 +159,55 @@ void main() {
       expect(find.text('No Recorded Rides Yet'), findsOneWidget);
       expect(find.text('Back to Dashboard'), findsOneWidget);
     });
+
+    testWidgets('TripHistoryScreen renders sleek stats cards at top with rides',
+        (tester) async {
+      final trip1 = TripRecord()
+        ..id = 1
+        ..title = 'Sunday Morning Ride'
+        ..startTime = DateTime(2026, 10, 4, 9, 0)
+        ..distanceKm = 15.0
+        ..durationSeconds = 1800
+        ..movingDurationSeconds = 1800
+        ..avgSpeedKmh = 30.0
+        ..topSpeedKmh = 50.0;
+
+      final trip2 = TripRecord()
+        ..id = 2
+        ..title = 'Sunset Cruise'
+        ..startTime = DateTime(2026, 10, 3, 18, 0)
+        ..distanceKm = 25.0
+        ..durationSeconds = 3600
+        ..movingDurationSeconds = 3600
+        ..avgSpeedKmh = 25.0
+        ..topSpeedKmh = 60.0;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: TripHistoryScreen(
+              tripsStream: Stream.value([trip1, trip2]),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump();
+
+      // Verify Lifetime telemetry header & ride badge
+      expect(find.text('LIFETIME TELEMETRY'), findsOneWidget);
+      expect(find.text('2 rides'), findsOneWidget);
+
+      // Verify all 4 sleek stat cards
+      expect(find.text('TOTAL DISTANCE'), findsOneWidget);
+      expect(find.text('40.0'), findsOneWidget); // 15 + 25
+      expect(find.text('TIME IN SADDLE'), findsOneWidget);
+      expect(find.text('01:30:00'), findsOneWidget); // 1800 + 3600 = 5400s = 1h 30m
+      expect(find.text('RECORD PEAK'), findsOneWidget);
+      expect(find.text('60'), findsOneWidget); // max(50, 60)
+      expect(find.text('AVG PER RIDE'), findsOneWidget);
+      expect(find.text('20.0'), findsOneWidget); // 40 / 2 = 20
+    });
   });
 }

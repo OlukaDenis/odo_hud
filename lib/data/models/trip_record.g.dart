@@ -37,23 +37,38 @@ const TripRecordSchema = CollectionSchema(
       name: r'endTime',
       type: IsarType.dateTime,
     ),
-    r'isCompleted': PropertySchema(
+    r'eventsJson': PropertySchema(
       id: 4,
+      name: r'eventsJson',
+      type: IsarType.string,
+    ),
+    r'isCompleted': PropertySchema(
+      id: 5,
       name: r'isCompleted',
       type: IsarType.bool,
     ),
+    r'movingDurationSeconds': PropertySchema(
+      id: 6,
+      name: r'movingDurationSeconds',
+      type: IsarType.long,
+    ),
+    r'pauseDurationSeconds': PropertySchema(
+      id: 7,
+      name: r'pauseDurationSeconds',
+      type: IsarType.long,
+    ),
     r'startTime': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'startTime',
       type: IsarType.dateTime,
     ),
     r'title': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'title',
       type: IsarType.string,
     ),
     r'topSpeedKmh': PropertySchema(
-      id: 7,
+      id: 10,
       name: r'topSpeedKmh',
       type: IsarType.double,
     )
@@ -78,6 +93,12 @@ int _tripRecordEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.eventsJson;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.title.length * 3;
   return bytesCount;
 }
@@ -92,10 +113,13 @@ void _tripRecordSerialize(
   writer.writeDouble(offsets[1], object.distanceKm);
   writer.writeLong(offsets[2], object.durationSeconds);
   writer.writeDateTime(offsets[3], object.endTime);
-  writer.writeBool(offsets[4], object.isCompleted);
-  writer.writeDateTime(offsets[5], object.startTime);
-  writer.writeString(offsets[6], object.title);
-  writer.writeDouble(offsets[7], object.topSpeedKmh);
+  writer.writeString(offsets[4], object.eventsJson);
+  writer.writeBool(offsets[5], object.isCompleted);
+  writer.writeLong(offsets[6], object.movingDurationSeconds);
+  writer.writeLong(offsets[7], object.pauseDurationSeconds);
+  writer.writeDateTime(offsets[8], object.startTime);
+  writer.writeString(offsets[9], object.title);
+  writer.writeDouble(offsets[10], object.topSpeedKmh);
 }
 
 TripRecord _tripRecordDeserialize(
@@ -109,11 +133,14 @@ TripRecord _tripRecordDeserialize(
   object.distanceKm = reader.readDouble(offsets[1]);
   object.durationSeconds = reader.readLong(offsets[2]);
   object.endTime = reader.readDateTimeOrNull(offsets[3]);
+  object.eventsJson = reader.readStringOrNull(offsets[4]);
   object.id = id;
-  object.isCompleted = reader.readBool(offsets[4]);
-  object.startTime = reader.readDateTime(offsets[5]);
-  object.title = reader.readString(offsets[6]);
-  object.topSpeedKmh = reader.readDouble(offsets[7]);
+  object.isCompleted = reader.readBool(offsets[5]);
+  object.movingDurationSeconds = reader.readLong(offsets[6]);
+  object.pauseDurationSeconds = reader.readLong(offsets[7]);
+  object.startTime = reader.readDateTime(offsets[8]);
+  object.title = reader.readString(offsets[9]);
+  object.topSpeedKmh = reader.readDouble(offsets[10]);
   return object;
 }
 
@@ -133,12 +160,18 @@ P _tripRecordDeserializeProp<P>(
     case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 7:
+      return (reader.readLong(offset)) as P;
+    case 8:
+      return (reader.readDateTime(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -493,6 +526,159 @@ extension TripRecordQueryFilter
     });
   }
 
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'eventsJson',
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'eventsJson',
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition> eventsJsonEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'eventsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'eventsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'eventsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition> eventsJsonBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'eventsJson',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'eventsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'eventsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'eventsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition> eventsJsonMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'eventsJson',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'eventsJson',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      eventsJsonIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'eventsJson',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -552,6 +738,118 @@ extension TripRecordQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isCompleted',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      movingDurationSecondsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'movingDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      movingDurationSecondsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'movingDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      movingDurationSecondsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'movingDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      movingDurationSecondsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'movingDurationSeconds',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      pauseDurationSecondsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pauseDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      pauseDurationSecondsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'pauseDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      pauseDurationSecondsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'pauseDurationSeconds',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterFilterCondition>
+      pauseDurationSecondsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'pauseDurationSeconds',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -865,6 +1163,18 @@ extension TripRecordQuerySortBy
     });
   }
 
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy> sortByEventsJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'eventsJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy> sortByEventsJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'eventsJson', Sort.desc);
+    });
+  }
+
   QueryBuilder<TripRecord, TripRecord, QAfterSortBy> sortByIsCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCompleted', Sort.asc);
@@ -874,6 +1184,34 @@ extension TripRecordQuerySortBy
   QueryBuilder<TripRecord, TripRecord, QAfterSortBy> sortByIsCompletedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCompleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      sortByMovingDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'movingDurationSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      sortByMovingDurationSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'movingDurationSeconds', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      sortByPauseDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pauseDurationSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      sortByPauseDurationSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pauseDurationSeconds', Sort.desc);
     });
   }
 
@@ -965,6 +1303,18 @@ extension TripRecordQuerySortThenBy
     });
   }
 
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy> thenByEventsJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'eventsJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy> thenByEventsJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'eventsJson', Sort.desc);
+    });
+  }
+
   QueryBuilder<TripRecord, TripRecord, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -986,6 +1336,34 @@ extension TripRecordQuerySortThenBy
   QueryBuilder<TripRecord, TripRecord, QAfterSortBy> thenByIsCompletedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCompleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      thenByMovingDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'movingDurationSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      thenByMovingDurationSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'movingDurationSeconds', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      thenByPauseDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pauseDurationSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QAfterSortBy>
+      thenByPauseDurationSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pauseDurationSeconds', Sort.desc);
     });
   }
 
@@ -1052,9 +1430,30 @@ extension TripRecordQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TripRecord, TripRecord, QDistinct> distinctByEventsJson(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'eventsJson', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TripRecord, TripRecord, QDistinct> distinctByIsCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isCompleted');
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QDistinct>
+      distinctByMovingDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'movingDurationSeconds');
+    });
+  }
+
+  QueryBuilder<TripRecord, TripRecord, QDistinct>
+      distinctByPauseDurationSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'pauseDurationSeconds');
     });
   }
 
@@ -1110,9 +1509,29 @@ extension TripRecordQueryProperty
     });
   }
 
+  QueryBuilder<TripRecord, String?, QQueryOperations> eventsJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'eventsJson');
+    });
+  }
+
   QueryBuilder<TripRecord, bool, QQueryOperations> isCompletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCompleted');
+    });
+  }
+
+  QueryBuilder<TripRecord, int, QQueryOperations>
+      movingDurationSecondsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'movingDurationSeconds');
+    });
+  }
+
+  QueryBuilder<TripRecord, int, QQueryOperations>
+      pauseDurationSecondsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pauseDurationSeconds');
     });
   }
 

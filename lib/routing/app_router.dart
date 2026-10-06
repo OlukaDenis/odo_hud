@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../data/database/isar_service.dart';
 import '../services/permission_service.dart';
+import '../data/models/trip_record.dart';
 import '../ui/screens/dashboard_screen.dart';
 import '../ui/screens/onboarding_screen.dart';
 import '../ui/screens/permissions_screen.dart';
 import '../ui/screens/settings_screen.dart';
+import '../ui/screens/trip_detail_screen.dart';
 import '../ui/screens/trip_history_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -46,6 +48,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/history',
         builder: (context, state) => const TripHistoryScreen(),
+        routes: [
+          GoRoute(
+            path: 'detail',
+            builder: (context, state) {
+              final trip = state.extra as TripRecord;
+              return TripDetailScreen(trip: trip);
+            },
+          ),
+        ],
       ),
     ],
     redirect: (context, state) async {

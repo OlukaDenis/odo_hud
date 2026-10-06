@@ -118,7 +118,7 @@ class _TopStatusBarState extends State<TopStatusBar>
           ),
           const SizedBox(width: 8),
           _buildToolbarButton(
-            icon: Icons.tune_rounded,
+            icon: Icons.settings,
             tooltip: 'Settings',
             onTap: widget.onOpenSettings,
           ),
