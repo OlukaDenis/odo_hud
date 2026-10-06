@@ -7,8 +7,8 @@ import 'package:odo_hud/data/models/theme_config_record.dart';
 void main() {
   group('Noise Gate & Threshold Tests', () {
     test('Noise gate threshold constants', () {
-      expect(AppConstants.minMovingSpeedMps, closeTo(0.416667, 0.0001));
-      expect(AppConstants.minMovingSpeedKmh, equals(1.5));
+      expect(AppConstants.minMovingSpeedMps, closeTo(0.222222, 0.0001));
+      expect(AppConstants.minMovingSpeedKmh, equals(0.8));
       expect(AppConstants.maxAcceptableGpsAccuracyMeters, equals(20.0));
       expect(AppConstants.gpsTimeoutSeconds, equals(3));
     });

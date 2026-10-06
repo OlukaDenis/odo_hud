@@ -77,12 +77,12 @@ void main() {
 
       expect(find.text('GPS'), findsOneWidget);
       expect(find.byIcon(Icons.history_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.settings), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.history_rounded));
       expect(historyOpened, isTrue);
 
-      await tester.tap(find.byIcon(Icons.tune_rounded));
+      await tester.tap(find.byIcon(Icons.settings));
       expect(settingsOpened, isTrue);
     });
 

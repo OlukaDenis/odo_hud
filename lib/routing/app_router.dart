@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../data/database/isar_service.dart';
@@ -9,6 +8,7 @@ import '../ui/screens/fullscreen_dashboard_screen.dart';
 import '../ui/screens/onboarding_screen.dart';
 import '../ui/screens/permissions_screen.dart';
 import '../ui/screens/settings_screen.dart';
+import '../ui/screens/splash_screen.dart';
 import '../ui/screens/trip_detail_screen.dart';
 import '../ui/screens/trip_history_screen.dart';
 
@@ -19,7 +19,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const _AppSplashScreen(),
+        builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
         path: '/onboarding',
@@ -65,9 +65,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) async {
+      final currentLoc = state.matchedLocation;
+
+      // Allow the splash screen to display for its 2-second duration
+      if (currentLoc == '/') {
+        return null;
+      }
+
       final isCompleted = await IsarService.instance.isOnboardingCompleted();
       final report = await PermissionService.instance.checkCurrentStatus();
-      final currentLoc = state.matchedLocation;
 
       // 1. If onboarding has NOT been completed or essential Location is missing
       if (!isCompleted || !report.hasEssentialPermissions) {
@@ -78,8 +84,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 2. If onboarding is completed and essential permissions exist, redirect root/onboarding to dashboard
-      if (currentLoc == '/' || currentLoc == '/onboarding') {
+      // 2. If onboarding is completed and essential permissions exist, redirect onboarding to dashboard
+      if (currentLoc == '/onboarding') {
         return '/dashboard';
       }
 
@@ -87,19 +93,3 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
   );
 });
-
-class _AppSplashScreen extends StatelessWidget {
-  const _AppSplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF00FF66),
-        ),
-      ),
-    );
-  }
-}
