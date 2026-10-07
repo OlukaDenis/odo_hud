@@ -19,8 +19,9 @@ void main() {
   });
 
   group('HUD Widget Tests', () {
-    testWidgets('SpeedDisplay renders correct speed and metric unit',
-        (tester) async {
+    testWidgets('SpeedDisplay renders correct speed and metric unit', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -38,54 +39,58 @@ void main() {
       expect(find.text('KM / H'), findsOneWidget);
     });
 
-    testWidgets('SpeedDisplay renders imperial MPH unit when isMetric is false',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SpeedDisplay(
-              currentSpeed: 55,
-              speedKmh: 88.5,
-              isMetric: false,
-              theme: testTheme,
+    testWidgets(
+      'SpeedDisplay renders imperial MPH unit when isMetric is false',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SpeedDisplay(
+                currentSpeed: 55,
+                speedKmh: 88.5,
+                isMetric: false,
+                theme: testTheme,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('55'), findsOneWidget);
-      expect(find.text('MPH'), findsOneWidget);
-    });
+        expect(find.text('55'), findsOneWidget);
+        expect(find.text('MPH'), findsOneWidget);
+      },
+    );
 
-    testWidgets('TopStatusBar (TopToolbar) displays GPS lock and action buttons',
-        (tester) async {
-      bool settingsOpened = false;
-      bool historyOpened = false;
+    testWidgets(
+      'TopStatusBar (TopToolbar) displays GPS lock and action buttons',
+      (tester) async {
+        bool settingsOpened = false;
+        bool historyOpened = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: TopStatusBar(
-              isGpsLocked: true,
-              gpsAccuracyMeters: 3.0,
-              theme: testTheme,
-              onOpenSettings: () => settingsOpened = true,
-              onOpenTripHistory: () => historyOpened = true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: TopStatusBar(
+                isGpsLocked: true,
+                gpsAccuracyMeters: 3.0,
+                theme: testTheme,
+                onOpenSettings: () => settingsOpened = true,
+                onOpenTripHistory: () => historyOpened = true,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('GPS'), findsOneWidget);
-      expect(find.byIcon(Icons.history_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.settings), findsOneWidget);
+        expect(find.text('GPS'), findsOneWidget);
+        expect(find.byIcon(Icons.history_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.settings), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.history_rounded));
-      expect(historyOpened, isTrue);
+        await tester.tap(find.byIcon(Icons.history_rounded));
+        expect(historyOpened, isTrue);
 
-      await tester.tap(find.byIcon(Icons.settings));
-      expect(settingsOpened, isTrue);
-    });
+        await tester.tap(find.byIcon(Icons.settings));
+        expect(settingsOpened, isTrue);
+      },
+    );
 
     testWidgets('MetricCard renders label, value and unit', (tester) async {
       await tester.pumpWidget(
@@ -107,65 +112,69 @@ void main() {
     });
 
     testWidgets(
-        'AuxiliaryGrid renders all 4 telemetry tiles and top icon-only actions',
-        (tester) async {
-      bool hudToggled = false;
-      bool orientationToggled = false;
+      'AuxiliaryGrid renders all 4 telemetry tiles and top icon-only actions',
+      (tester) async {
+        bool hudToggled = false;
+        bool orientationToggled = false;
 
-      const telemetry = TelemetryState(
-        tripDistanceKm: 34.8,
-        movingTimeSeconds: 2535, // 00:42:15
-        averageSpeedKmh: 52.0,
-        headingDegrees: 315.0,
-        cardinalDirection: 'NW',
-      );
+        const telemetry = TelemetryState(
+          tripDistanceKm: 34.8,
+          movingTimeSeconds: 2535, // 00:42:15
+          averageSpeedKmh: 52.0,
+          headingDegrees: 315.0,
+          cardinalDirection: 'NW',
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 400,
-              height: 400,
-              child: AuxiliaryGrid(
-                telemetry: telemetry,
-                theme: testTheme,
-                isMetric: true,
-                isHudMirrored: false,
-                onToggleHud: () => hudToggled = true,
-                isLandscape: false,
-                onToggleOrientation: () => orientationToggled = true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 400,
+                height: 400,
+                child: AuxiliaryGrid(
+                  telemetry: telemetry,
+                  theme: testTheme,
+                  isMetric: true,
+                  isHudMirrored: false,
+                  onToggleHud: () => hudToggled = true,
+                  isLandscape: false,
+                  onToggleOrientation: () => orientationToggled = true,
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Verify metric cards
-      expect(find.text('Trip Distance'), findsOneWidget);
-      expect(find.text('Moving Time'), findsOneWidget);
-      expect(find.text('00:42:15'), findsOneWidget);
-      expect(find.text('Average Speed'), findsOneWidget);
-      expect(find.text('Heading'), findsOneWidget);
-      expect(find.byType(CompassDial), findsOneWidget);
+        // Verify metric cards
+        expect(find.text('Trip Distance'), findsOneWidget);
+        expect(find.text('Moving Time'), findsOneWidget);
+        expect(find.text('00:42:15'), findsOneWidget);
+        expect(find.text('Average Speed'), findsOneWidget);
+        expect(find.text('Compass'), findsOneWidget);
+        expect(find.byType(CompassDial), findsOneWidget);
 
-      // Verify icon-only buttons (no text for HUD Flip or Landscape)
-      expect(find.text('HUD Flip'), findsNothing);
-      expect(find.text('Landscape'), findsNothing);
-      expect(find.byIcon(Icons.flip_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.stay_current_landscape_rounded), findsOneWidget);
+        // Verify icon-only buttons (no text for HUD Flip or Landscape)
+        expect(find.text('HUD Flip'), findsNothing);
+        expect(find.text('Landscape'), findsNothing);
+        expect(find.byIcon(Icons.flip_rounded), findsOneWidget);
+        expect(
+          find.byIcon(Icons.stay_current_landscape_rounded),
+          findsOneWidget,
+        );
 
-      // Tap HUD Flip icon
-      await tester.tap(find.byIcon(Icons.flip_rounded));
-      expect(hudToggled, isTrue);
+        // Tap HUD Flip icon
+        await tester.tap(find.byIcon(Icons.flip_rounded));
+        expect(hudToggled, isTrue);
 
-      // Tap Landscape icon
-      await tester.tap(find.byIcon(Icons.stay_current_landscape_rounded));
-      expect(orientationToggled, isTrue);
-    });
+        // Tap Landscape icon
+        await tester.tap(find.byIcon(Icons.stay_current_landscape_rounded));
+        expect(orientationToggled, isTrue);
+      },
+    );
 
-    testWidgets(
-        'ActionBar renders enlarged Start, Pause, and Reset actions',
-        (tester) async {
+    testWidgets('ActionBar renders enlarged Start, Pause, and Reset actions', (
+      tester,
+    ) async {
       bool tripToggled = false;
       bool pauseToggled = false;
 

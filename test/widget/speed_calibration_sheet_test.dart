@@ -20,11 +20,11 @@ void main() {
 
       // Verify card components
       expect(find.text('SPEEDOMETER CALIBRATION'), findsOneWidget);
-      expect(find.text('Speed Calibration & Offset'), findsOneWidget);
+      expect(find.text('Speed Calibration'), findsOneWidget);
       expect(find.text('OFF'), findsOneWidget);
 
       // Tap card to open modal sheet
-      await tester.tap(find.text('Speed Calibration & Offset'));
+      await tester.tap(find.text('Speed Calibration'));
       await tester.pumpAndSettle();
 
       // Verify bottom sheet content

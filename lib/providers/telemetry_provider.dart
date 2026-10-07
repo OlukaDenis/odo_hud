@@ -216,7 +216,12 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
             ? tripKm / (activeMovingSecs / 3600.0)
             : 0.0;
 
-        final cardinal = UnitConverter.degreesToCardinal(update.headingDegrees);
+        // Only use GPS course heading when vehicle is moving with valid course;
+        // otherwise preserve the magnetic compass heading to prevent stationary jitter.
+        final bool useGpsHeading = _isMoving && update.headingDegrees > 0;
+        final effectiveHeading =
+            useGpsHeading ? update.headingDegrees : state.headingDegrees;
+        final cardinal = UnitConverter.degreesToCardinal(effectiveHeading);
 
         state = state.copyWith(
           currentSpeedKmh: speedKmh,
@@ -228,7 +233,7 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
           odometerKm: odoKm,
           averageSpeedKmh: avgSpeedKmh,
           maxSpeedKmh: _maxSpeedKmh,
-          headingDegrees: update.headingDegrees,
+          headingDegrees: effectiveHeading,
           cardinalDirection: cardinal,
           gpsAccuracyMeters: update.accuracyMeters,
           isGpsLocked: update.isGpsLocked,
@@ -253,8 +258,8 @@ class TelemetryNotifier extends StateNotifier<TelemetryState> {
 
     _compassSubscription =
         SensorService.instance.compassHeadingStream.listen((heading) {
-      // Use compass heading if GPS is stationary or stationary heading is not updated
-      if (!_isMoving && heading >= 0) {
+      // Use compass heading when device is stationary or moving below GPS threshold
+      if (!_isMoving) {
         state = state.copyWith(
           headingDegrees: heading,
           cardinalDirection: UnitConverter.degreesToCardinal(heading),

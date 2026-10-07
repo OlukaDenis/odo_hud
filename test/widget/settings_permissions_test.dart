@@ -25,8 +25,8 @@ void main() {
       expect(find.text('KM/H'), findsOneWidget);
       expect(find.text('KM'), findsOneWidget);
 
-      // Verify Speed Calibration & Offset Card
-      expect(find.text('Speed Calibration & Offset'), findsOneWidget);
+      // Verify Speed Calibration Card
+      expect(find.text('Speed Calibration'), findsOneWidget);
 
       // Verify Appearance & Theme Card
       await tester.scrollUntilVisible(
@@ -38,7 +38,7 @@ void main() {
       expect(find.text('Theme Appearance'), findsOneWidget);
       expect(find.text('Dark Mode'), findsOneWidget);
       expect(find.text('Speedometer Font'), findsOneWidget);
-      expect(find.text('Primary & Speed Display Colors'), findsOneWidget);
+      expect(find.text('Display Colors'), findsOneWidget);
 
       // Scroll down to permissions and speed alerts
       await tester.scrollUntilVisible(
@@ -48,7 +48,7 @@ void main() {
       );
 
       expect(find.text('SPEED ALERTS & SAFETY'), findsOneWidget);
-      expect(find.text('Speed Alert Thresholds'), findsOneWidget);
+      expect(find.text('Speed Alerts'), findsOneWidget);
       expect(find.text('PERMISSIONS & SYSTEM TUNING'), findsOneWidget);
       expect(find.text('Hardware & Background Access'), findsOneWidget);
     });

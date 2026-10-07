@@ -52,7 +52,7 @@ class CompassCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Heading',
+                      'Compass',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme

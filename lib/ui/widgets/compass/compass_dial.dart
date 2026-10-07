@@ -37,7 +37,7 @@ class _CompassDialState extends State<CompassDial>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 150),
     );
 
     _animation = Tween<double>(
@@ -45,7 +45,7 @@ class _CompassDialState extends State<CompassDial>
       end: _targetDisplayAngle,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutCubic,
+      curve: Curves.easeOut,
     ))..addListener(() {
         setState(() {
           _currentDisplayAngle = _animation.value;
@@ -60,6 +60,10 @@ class _CompassDialState extends State<CompassDial>
       // Calculate shortest angular path across 360° boundary
       final delta =
           ((widget.headingDegrees - _currentDisplayAngle + 540) % 360) - 180;
+
+      // Ignore microscopic sub-pixel float noise (< 0.2°)
+      if (delta.abs() < 0.2) return;
+
       final newTarget = _currentDisplayAngle + delta;
 
       _animation = Tween<double>(
@@ -67,7 +71,7 @@ class _CompassDialState extends State<CompassDial>
         end: newTarget,
       ).animate(CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOutCubic,
+        curve: Curves.easeOut,
       ));
 
       _controller.reset();

@@ -64,20 +64,26 @@ void main() {
     });
 
     test('summaryText formats cleanly', () {
-      expect(SpeedCalibrationConfig.gpsTrue.summaryText, equals('OFF (True GPS)'));
+      expect(
+        SpeedCalibrationConfig.gpsTrue.summaryText,
+        equals('OFF (True GPS)'),
+      );
       expect(SpeedCalibrationConfig.factoryPlus5.summaryText, equals('+5%'));
-      expect(SpeedCalibrationConfig.uneceReg39.summaryText, equals('+7% +2 km/h'));
+      expect(
+        SpeedCalibrationConfig.uneceReg39.summaryText,
+        equals('+7% +2 km/h'),
+      );
     });
   });
 
   group('Global Primary Color Tests', () {
     test('AppColors.primaryColor is defaultSpeedColor', () {
       expect(AppColors.primaryColor, equals(AppColors.defaultSpeedColor));
-      expect(AppColors.primaryColor.toARGB32(), equals(0xFF028AC4));
+      expect(AppColors.primaryColor.toARGB32(), equals(0xFFFFFFFF));
     });
 
     test('HudTheme.primaryColor matches speedNormal', () {
-      final config = ThemeConfigRecord()..speedColorNormal = 0xFF028AC4;
+      final config = ThemeConfigRecord()..speedColorNormal = 0xFFFFFFFF;
       final theme = HudTheme(config);
       expect(theme.primaryColor, equals(theme.speedNormal));
       expect(theme.primaryColor, equals(AppColors.defaultSpeedColor));

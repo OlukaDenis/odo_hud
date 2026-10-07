@@ -71,7 +71,7 @@ void main() {
         );
 
         // Verify header and mini dial
-        expect(find.text('Heading'), findsOneWidget);
+        expect(find.text('Compass'), findsOneWidget);
         expect(find.byType(CompassDial), findsOneWidget);
         expect(find.byIcon(Icons.open_in_full_rounded), findsOneWidget);
 

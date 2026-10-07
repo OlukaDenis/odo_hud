@@ -34,12 +34,40 @@ class SensorService {
     if (kIsWeb) {
       return Stream.value(0.0);
     }
+
+    double? lastHeading;
+
     return FlutterCompass.events
-            ?.map((event) => event.heading ?? 0.0)
+            ?.where((event) => event.heading != null)
+            .map((event) {
+              // Normalize angle to [0, 360) to correctly handle negative readings
+              final raw = (event.heading! % 360.0 + 360.0) % 360.0;
+
+              if (lastHeading == null) {
+                lastHeading = raw;
+                return raw;
+              }
+
+              // Compute shortest angular delta across the 0°/360° boundary
+              final delta = ((raw - lastHeading! + 540.0) % 360.0) - 180.0;
+
+              // Sensor noise deadband: suppress microscopic sensor jitter (< 0.8°)
+              if (delta.abs() < 0.8) {
+                return lastHeading!;
+              }
+
+              // Dynamic Exponential Moving Average (EMA) smoothing:
+              // Fast tracking for deliberate turns, smooth damping for stability
+              final alpha = delta.abs() > 15.0 ? 0.55 : 0.25;
+              final smoothed = (lastHeading! + delta * alpha + 360.0) % 360.0;
+              lastHeading = smoothed;
+              return smoothed;
+            })
+            .distinct((prev, next) => (prev - next).abs() < 0.3)
             .handleError((e) {
-          debugPrint('Compass error: $e');
-          return 0.0;
-        }) ??
+              debugPrint('Compass error: $e');
+              return 0.0;
+            }) ??
         Stream.value(0.0);
   }
 }

@@ -7,7 +7,7 @@ class ThemeConfigRecord {
   Id id = 1; // Single-row singleton
 
   int backgroundColorValue = 0xFF020609; // Pure AMOLED Black
-  int speedColorNormal = 0xFF028AC4; // Electric Blue (#028ac4)
+  int speedColorNormal = 0xFFFFFFFF; // Electric Blue (#028ac4)
   int speedColorWarning = 0xFFFFB800; // Amber
   int speedColorCritical = 0xFFFF3B30; // Danger Red
   double warningThresholdKmh = 100.0;
